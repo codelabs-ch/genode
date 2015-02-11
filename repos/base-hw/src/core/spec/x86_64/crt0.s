@@ -23,6 +23,7 @@
 	 ** Startup code for primary CPU **
 	 **********************************/
 
+.code32
 	.global _start
 	_start:
 
