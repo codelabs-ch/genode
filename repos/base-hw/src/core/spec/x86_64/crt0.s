@@ -55,6 +55,12 @@
 	/* Set up GDT */
 	lgdt _gdt_ptr
 
+	/* Indirect long jump to 64-bit code */
+	ljmp $8, $_start64
+
+.code64
+	_start64: .align 4096
+
 	/*
 	 * Install initial temporary environment that is replaced later by the
 	 * environment that init_main_thread creates.
