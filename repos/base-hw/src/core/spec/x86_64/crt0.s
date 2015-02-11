@@ -69,3 +69,29 @@
 	.p2align 8
 	.space 32 * 1024
 	_stack_high:
+
+.data
+
+	/****************************************
+	 ** Initial pagetables                 **
+	 ** Identity mapping from 2MiB to 4MiB **
+	 ****************************************/
+
+	/* PML4 */
+	.align 4096
+	_kernel_pml4:
+	.quad _kernel_pdp + 0xf
+	.fill 511, 8, 0x0
+
+	/* PDP */
+	.align 4096
+	_kernel_pdp:
+	.quad _kernel_pd + 0xf
+	.fill 511, 8, 0x0
+
+	/* PD */
+	.align 4096
+	_kernel_pd:
+	.quad 0
+	.quad 0x20018f
+	.fill 510, 8, 0x0
