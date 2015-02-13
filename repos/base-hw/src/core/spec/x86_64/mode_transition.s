@@ -12,6 +12,13 @@
  * under the terms of the GNU General Public License version 2.
  */
 
+/***************************************************
+ ** Constant values that are pretty commonly used **
+ ***************************************************/
+
+/* alignment constraints */
+.set MIN_PAGE_SIZE_LOG2, 12
+
 .section .text
 
 	/* space for a copy of the kernel context */
@@ -44,6 +51,7 @@
 	 * To enable such switching, the kernel context must be stored within this
 	 * region, thus one should map it solely accessable for privileged modes.
 	 */
+	.p2align MIN_PAGE_SIZE_LOG2
 	.global _mt_begin
 	_mt_begin:
 	1: jmp 1b
