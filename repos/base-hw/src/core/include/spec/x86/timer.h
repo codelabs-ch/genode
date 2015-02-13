@@ -56,6 +56,12 @@ class Genode::Timer
 			PDBG("not implemented");
 			return 0;
 		}
+
+	private:
+
+		enum {
+			PIT_TICK_RATE = 1193182ul,
+		};
 };
 
 namespace Kernel { class Timer : public Genode::Timer { }; }
