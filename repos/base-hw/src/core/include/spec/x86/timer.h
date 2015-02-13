@@ -17,6 +17,25 @@
 #include <base/stdint.h>
 #include <base/printf.h>
 
+/**
+ * Read byte from I/O port
+ */
+inline Genode::uint8_t inb(Genode::uint16_t port)
+{
+	Genode::uint8_t res;
+	asm volatile ("inb %%dx, %0" :"=a"(res) :"Nd"(port));
+	return res;
+}
+
+
+/**
+ * Write byte to I/O port
+ */
+inline void outb(Genode::uint16_t port, Genode::uint8_t val)
+{
+	asm volatile ("outb %b0, %w1" : : "a" (val), "Nd" (port));
+}
+
 
 namespace Genode
 {
