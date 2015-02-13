@@ -60,6 +60,9 @@ class Genode::Timer
 
 		enum {
 			PIT_TICK_RATE = 1193182ul,
+
+			PIT_CH0  = 0x40,
+			PIT_MODE = 0x43,
 		};
 };
 
