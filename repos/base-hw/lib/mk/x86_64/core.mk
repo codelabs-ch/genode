@@ -15,6 +15,7 @@ SRC_S += spec/x86_64/isr.s
 
 # add C++ sources
 SRC_CC += spec/x86_64/kernel/thread_base.cc
+SRC_CC += spec/x86_64/idt.cc
 
 # include less specific configuration
 include $(REP_DIR)/lib/mk/x86/core.inc
