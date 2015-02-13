@@ -47,8 +47,7 @@ class Genode::Timer
 
 		static uint32_t ms_to_tics(unsigned const ms)
 		{
-			PDBG("not implemented");
-			return 0;
+			return (PIT_TICK_RATE / 1000) * ms;
 		}
 
 		unsigned value(unsigned)
