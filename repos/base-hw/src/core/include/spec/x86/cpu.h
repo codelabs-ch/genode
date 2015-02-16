@@ -83,6 +83,8 @@ class Genode::Cpu
 		 */
 		struct Context : Cpu_state
 		{
+			addr_t cr3;
+
 			/**
 			 * Return base of assigned translation table
 			 */
