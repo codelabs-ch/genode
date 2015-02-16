@@ -51,7 +51,11 @@ class Genode::Timer
 {
 	public:
 
-		Timer() { }
+		Timer()
+		{
+			/* Init PIT in one-shot lobyte/hibyte mode */
+			outb(PIT_MODE, 0x38);
+		}
 
 		static unsigned interrupt_id(int)
 		{
