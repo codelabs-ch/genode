@@ -77,8 +77,16 @@ class Genode::Timer
 
 		unsigned value(unsigned)
 		{
-			PDBG("not implemented");
-			return 0;
+			unsigned count;
+
+			/* Latch the counter */
+			outb(PIT_MODE, 0);
+
+			count  = inb(PIT_CH0);
+			count |= inb(PIT_CH0) << 8;
+
+			PDBG("current count is %u", count);
+			return count;
 		}
 
 	private:
