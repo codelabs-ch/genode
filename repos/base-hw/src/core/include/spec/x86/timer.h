@@ -65,7 +65,9 @@ class Genode::Timer
 
 		inline void start_one_shot(uint32_t const tics, unsigned)
 		{
-			PDBG("not implemented");
+			PDBG("next event in %u tics", tics);
+			outb(PIT_CH0, tics & 0xff);
+			outb(PIT_CH0, tics >> 8);
 		}
 
 		static uint32_t ms_to_tics(unsigned const ms)
