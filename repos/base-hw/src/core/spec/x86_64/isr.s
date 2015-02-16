@@ -26,8 +26,23 @@ _isr_array:
 
 /* interrupt dispatcher */
 _dispatch_interrupt:
-hlt
-jmp _dispatch_interrupt
+	push %r15
+	push %r14
+	push %r13
+	push %r12
+	push %r11
+	push %r10
+	push %r9
+	push %r8
+	push %rbp
+	push %rsi
+	push %rdi
+	push %rdx
+	push %rcx
+	push %rbx
+	push %rax
+	mov %rsp, %rdi
+	call dump_interrupt_info
 
 _exception				0
 _exception				1
