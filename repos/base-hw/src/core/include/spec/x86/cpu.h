@@ -93,7 +93,8 @@ class Genode::Cpu
 			/**
 			 * Assign translation-table base 'table'
 			 */
-			void translation_table(addr_t const table) { }
+			void translation_table(addr_t const table) {
+				cr3 = Cr3::init(table); }
 
 			/**
 			 * Assign protection domain
