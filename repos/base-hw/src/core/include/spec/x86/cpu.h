@@ -229,8 +229,8 @@ class Genode::Cpu
 		 * \param process_id  process ID of the kernel address-space
 		 */
 		static void
-		init_virt_kernel(addr_t const table, unsigned const process_id)
-		{ }
+		init_virt_kernel(addr_t const table, unsigned const process_id) {
+			Cr3::write(Cr3::init(table)); }
 
 		inline static void finish_init_phys_kernel()
 		{ }
