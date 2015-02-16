@@ -51,6 +51,34 @@ class Genode::Cpu
 		static constexpr addr_t exception_entry = 0x0; /* XXX */
 
 		/**
+		 * Control register 3: Page-Directory base register
+		 */
+		struct Cr3 : Register<64>
+		{
+			struct Pwt : Bitfield<3,1> { };     /* Page-level write-through    */
+			struct Pcd : Bitfield<4,1> { };     /* Page-level cache disable    */
+			struct Pdb : Bitfield<12, 36> { };  /* Page-directory base address */
+
+			static void write(access_t const v) {
+				asm volatile ("mov %0, %%cr3" :: "r" (v) : ); }
+
+			static access_t read()
+			{
+				access_t v;
+				asm volatile ("mov %%cr3, %0" : "=r" (v) :: );
+				return v;
+			}
+
+			/**
+			 * Return initialized value
+			 *
+			 * \param table  base of targeted translation table
+			 */
+			static access_t init(addr_t const table) {
+				return Pdb::masked(table); }
+		};
+
+		/**
 		 * Extend basic CPU state by members relevant for 'base-hw' only
 		 */
 		struct Context : Cpu_state
