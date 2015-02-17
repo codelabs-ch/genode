@@ -62,6 +62,17 @@
 	_start64: .align 4096
 
 	/*
+	 * Set up kernel segment selectors
+	 */
+	mov $0x10, %eax
+	mov %eax, %ss
+	mov %eax, %ds
+	mov %eax, %es
+	mov %eax, %fs
+	mov %eax, %gs
+	mov %eax, %ss
+
+	/*
 	 * Install initial temporary environment that is replaced later by the
 	 * environment that init_main_thread creates.
 	 */
