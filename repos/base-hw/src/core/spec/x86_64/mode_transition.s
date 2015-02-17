@@ -121,6 +121,10 @@
 	popq %rsi
 	popq %rbp
 
+	/* Switch page tables */
+	mov CR3_OFFSET(%rax), %rax
+	mov %rax, %cr3
+
 	1: jmp 1b
 
 	.global _mon_kernel_entry
