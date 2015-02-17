@@ -25,8 +25,15 @@
 /* globally mapped buffer storage */
 .set BUFFER_SIZE, 6 * 8
 
-.section .text
+/* offsets of the member variables in a CPU context */
+.set SP_OFFSET,     1 * 8
+.set R8_OFFSET,     2 * 8
+.set RAX_OFFSET,   10 * 8
+.set SS_OFFSET,    17 * 8
+.set FLAGS_OFFSET, 18 * 8
+.set CR3_OFFSET,   20 * 8
 
+.section .text
 	/* space for a copy of the kernel context */
 	.p2align 2
 	.global _mt_master_context_begin
