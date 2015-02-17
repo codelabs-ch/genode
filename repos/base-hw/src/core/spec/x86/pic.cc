@@ -1,4 +1,5 @@
 #include <pic.h>
+#include <base/stdint.h>
 
 using namespace Genode;
 
@@ -14,5 +15,25 @@ enum {
 	ICW1_ICW4    = 0x01,      /* Enable ICW4                    */
 	ICW4_8086    = 0x01,      /* 8086/88 (MCS-80/85) mode       */
 };
+
+
+/**
+ * Read byte from I/O port
+ */
+inline Genode::uint8_t inb(Genode::uint16_t port)
+{
+	Genode::uint8_t res;
+	asm volatile ("inb %%dx, %0" :"=a"(res) :"Nd"(port));
+	return res;
+}
+
+
+/**
+ * Write byte to I/O port
+ */
+inline void outb(Genode::uint16_t port, Genode::uint8_t val)
+{
+	asm volatile ("outb %b0, %w1" : : "a" (val), "Nd" (port));
+}
 
 Pic::Pic() { }
