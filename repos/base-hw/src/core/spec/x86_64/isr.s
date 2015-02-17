@@ -64,3 +64,9 @@ _exception				16
 _exception_with_code	17
 _exception				18
 _exception				19
+
+.set vec, 20
+.rept 236
+_exception				vec
+.set vec, vec + 1
+.endr
