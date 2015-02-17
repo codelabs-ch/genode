@@ -50,9 +50,9 @@ Pic::Pic()
 	outb(PIC2_COMMAND, ICW1_INIT+ICW1_ICW4);
 
 	/* ICW2: Master PIC vector offset (32) */
-	outb(PIC1_DATA, 0x20);
+	outb(PIC1_DATA, MASTER_VEC_OFFSET);
 	/* ICW2: Slave PIC vector offset (40) */
-	outb(PIC2_DATA, 0x28);
+	outb(PIC2_DATA, SLAVE_VEC_OFFSET);
 
 	/* ICW3: Tell Master PIC that there is a slave PIC at IRQ2 */
 	outb(PIC1_DATA, 4);

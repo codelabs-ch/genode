@@ -28,7 +28,12 @@ class Genode::Pic
 {
 	public:
 
-		enum { NR_OF_IRQ = 15 };
+		enum {
+			NR_OF_IRQ = 15,
+
+			MASTER_VEC_OFFSET = 0x20,
+			SLAVE_VEC_OFFSET  = 0x28,
+		};
 
 		/**
 		 * Constructor
