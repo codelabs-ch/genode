@@ -16,6 +16,7 @@
 
 #include <base/stdint.h>
 #include <base/printf.h>
+#include <pic.h>
 
 /**
  * Read byte from I/O port
@@ -59,8 +60,7 @@ class Genode::Timer
 
 		static unsigned interrupt_id(int)
 		{
-			PDBG("not implemented");
-			return 0;
+			return Pic::MASTER_VEC_OFFSET;
 		}
 
 		inline void start_one_shot(uint32_t const tics, unsigned)
