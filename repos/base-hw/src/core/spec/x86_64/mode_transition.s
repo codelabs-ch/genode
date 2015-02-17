@@ -125,6 +125,10 @@
 	mov CR3_OFFSET(%rax), %rax
 	mov %rax, %cr3
 
+	/* Set stack back to mt buffer and restore client RAX */
+	mov $_mt_buffer, %rsp
+	popq %rax
+
 	1: jmp 1b
 
 	.global _mon_kernel_entry
