@@ -28,7 +28,7 @@ class Genode::Pic
 {
 	public:
 
-		enum { NR_OF_IRQ = 256 };
+		enum { NR_OF_IRQ = 15 };
 
 		/**
 		 * Constructor
