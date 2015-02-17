@@ -22,6 +22,9 @@
 /* size of pointer to CPU context */
 .set CONTEXT_PTR_SIZE, 1 * 8
 
+/* globally mapped buffer storage */
+.set BUFFER_SIZE, 6 * 8
+
 .section .text
 
 	/* space for a copy of the kernel context */
@@ -45,6 +48,7 @@
 	.p2align 2
 	.global _mt_buffer
 	_mt_buffer:
+	.space BUFFER_SIZE
 
 	/*
 	 * Page aligned base of mode transition code.
