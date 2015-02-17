@@ -129,7 +129,7 @@
 	mov $_mt_buffer, %rsp
 	popq %rax
 
-	1: jmp 1b
+	iretq
 
 	.global _mon_kernel_entry
 	_mon_kernel_entry:
