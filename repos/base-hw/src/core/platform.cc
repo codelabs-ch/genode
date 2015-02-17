@@ -41,9 +41,9 @@ void __attribute__((weak)) Kernel::init_trustzone(Pic * pic) { }
  */
 struct Bm_header
 {
-	long name; /* physical address of null-terminated string */
-	long base; /* physical address of module data */
-	long size; /* size of module data in bytes */
+	int name; /* physical address of null-terminated string */
+	int base; /* physical address of module data */
+	int size; /* size of module data in bytes */
 };
 
 extern Bm_header _boot_modules_headers_begin;
@@ -163,7 +163,8 @@ Platform::Platform()
 	Bm_header * header = &_boot_modules_headers_begin;
 	for (; header < &_boot_modules_headers_end; header++) {
 		Rom_module * rom_module = new (core_mem_alloc())
-			Rom_module(header->base, header->size, (const char*)header->name);
+			Rom_module(header->base, header->size,
+					(const char*)((long)header->name));
 		_rom_fs.insert(rom_module);
 	}
 
