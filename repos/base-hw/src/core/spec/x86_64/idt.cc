@@ -45,7 +45,7 @@ void Idt::load()
 class CPU_regs {
 
 	public:
-		uint64_t _rax, _rbx, _rcx, _rdx, _rdi, _rsi, _rbp, _r08, _r09, _r10,
+		uint64_t _cr2, _rax, _rbx, _rcx, _rdx, _rdi, _rsi, _rbp, _r08, _r09, _r10,
 				 _r11, _r12, _r13, _r14, _r15;
 
 };
@@ -64,6 +64,7 @@ extern "C" void dump_interrupt_info(ISR_context context)
 	PERR("unhandled exception/interrupt occurred with vector %d",
 		 (int)context._vector);
 
+	PDBG("cr2 %16llx", context._gpr._cr2);
 	PDBG("rip %16llx cs %04x", context._rip, (int)context._cs);
 	PDBG("rsp %16llx ss %04x", context._rsp, (int)context._ss);
 	PDBG("rax %16llx rbx %16llx rcx %16llx",

@@ -41,6 +41,8 @@ _dispatch_interrupt:
 	push %rcx
 	push %rbx
 	push %rax
+	mov %cr2, %rdi
+	push %rdi
 	mov %rsp, %rdi
 	call dump_interrupt_info
 
