@@ -19,6 +19,9 @@
 /* alignment constraints */
 .set MIN_PAGE_SIZE_LOG2, 12
 
+/* size of pointer to CPU context */
+.set CONTEXT_PTR_SIZE, 1 * 8
+
 .section .text
 
 	/* space for a copy of the kernel context */
@@ -36,6 +39,7 @@
 	.p2align 2
 	.global _mt_client_context_ptr
 	_mt_client_context_ptr:
+	.space CONTEXT_PTR_SIZE
 
 	/* a globally mapped buffer per CPU */
 	.p2align 2
