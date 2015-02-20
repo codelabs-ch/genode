@@ -90,6 +90,13 @@
 	shr $32, %rdx
 	wrmsr
 
+	/* Specify EFLAGS mask (IF) in IA32_FMASK */
+	mov $0xc0000084, %ecx
+	xor %rax, %rax
+	mov $0x200, %rdx
+	wrmsr
+
+	/*
 	 * Install initial temporary environment that is replaced later by the
 	 * environment that init_main_thread creates.
 	 */
