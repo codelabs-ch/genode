@@ -652,6 +652,12 @@ class Genode::PML4_table
 		                        Page_flags const & flags,
 		                        Page_slab * slab)
 		{
+			PDBG("vo 0x%lx, pa 0x%lx, size %lu, %swriteable, %sprivileged, "
+					"%sexecutable, %sglobal", vo, pa, size,
+					flags.writeable  ? "" : "non-",
+					flags.privileged ? "" : "non-",
+					flags.executable ? "" : "non-",
+					flags.global     ? "" : "non-");
 			_range_op(vo, pa, size, Insert_func(flags, slab));
 		}
 
