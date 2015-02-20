@@ -36,9 +36,10 @@
 	leal _kernel_pml4, %eax
 	mov %eax, %cr3
 
-	/* Enable IA-32e mode and execute-disable */
+	/* Enable syscall, IA-32e mode and execute-disable */
 	movl $0xc0000080, %ecx
 	rdmsr
+	btsl $0, %eax
 	btsl $8, %eax
 	btsl $11, %eax
 	wrmsr
