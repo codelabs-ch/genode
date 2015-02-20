@@ -272,30 +272,13 @@ class Genode::Page_directory
 		class Invalid_range {};
 		class Double_insertion {};
 
-		struct Base_descriptor : Register<64>
+		struct Base_descriptor : Common_descriptor
 		{
-			struct P   : Bitfield<0, 1> { };   /* present         */
-			struct Rw  : Bitfield<1, 1> { };   /* read/write      */
-			struct Us  : Bitfield<2, 1> { };   /* user/supervisor */
-			struct Pwt : Bitfield<3, 1> { };   /* write-through   */
-			struct Pcd : Bitfield<4, 1> { };   /* cache disable   */
-			struct A   : Bitfield<5, 1> { };   /* accessed        */
-			struct Ps  : Bitfield<7, 1> { };   /* page size       */
-			struct Xd  : Bitfield<63, 1> { };  /* execute-disable */
+			using Common = Common_descriptor;
 
-			static bool present(access_t const v) { return P::get(v); }
+			struct Ps : Common::template Bitfield<7, 1> { };  /* page size */
 
 			static bool maps_page(access_t const v) { return Ps::get(v); }
-
-			static access_t create(Page_flags const &flags, addr_t const pa)
-			{
-				/* XXX: Set memory type depending on active PAT */
-				return P::bits(1)
-					| Rw::bits(flags.writeable)
-					| Us::bits(!flags.privileged)
-					| Xd::bits(!flags.executable);
-			}
-
 		};
 
 		struct Page_descriptor : Base_descriptor
@@ -312,7 +295,7 @@ class Genode::Page_directory
 			static typename Base::access_t create(Page_flags const &flags, addr_t const pa)
 			{
 				/* XXX: Set memory type depending on active PAT */
-				return Base::create(flags, pa)
+				return Base::create(flags)
 					| Base::Ps::bits(1)
 					| G::bits(flags.global)
 					| Pa::masked(pa);
@@ -330,7 +313,7 @@ class Genode::Page_directory
 			static typename Base::access_t create(Page_flags const &flags, addr_t const pa)
 			{
 				/* XXX: Set memory type depending on active PAT */
-				return Base::create(flags, pa)
+				return Base::create(flags)
 					| Pa::masked(pa);
 			}
 		};
