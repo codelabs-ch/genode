@@ -56,6 +56,8 @@ using namespace Kernel;
 #define CALL_3_SYSCALL CALL_2_SYSCALL, "r" (arg_2_reg)
 #define CALL_4_SYSCALL CALL_3_SYSCALL, "r" (arg_3_reg)
 #define CALL_5_SYSCALL CALL_4_SYSCALL, "r" (arg_4_reg)
+#define CALL_6_SYSCALL CALL_5_SYSCALL, "r" (arg_5_reg)
+
 
 /******************
  ** Kernel calls **
@@ -118,7 +120,7 @@ Call_ret Kernel::call(Call_arg arg_0,
                       Call_arg arg_4,
                       Call_arg arg_5)
 {
-	PDBG("syscall binding not implemented");
-	for (;;);
-	return 0;
+	CALL_6_FILL_ARG_REGS
+	asm volatile(CALL_6_SYSCALL);
+	return arg_0_reg;
 }
