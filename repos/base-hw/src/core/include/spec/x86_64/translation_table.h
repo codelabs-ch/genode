@@ -68,6 +68,33 @@ namespace Genode
 		SIZE_LOG2_1GB, SIZE_LOG2_512GB>;
 
 	using Translation_table = PML4_table;
+
+	/**
+	 * IA-32e common descriptor.
+	 *
+	 * Table entry containing descriptor fields common to all four levels.
+	 */
+	struct Common_descriptor : Register<64>
+	{
+		struct P   : Bitfield<0, 1> { };   /* present         */
+		struct Rw  : Bitfield<1, 1> { };   /* read/write      */
+		struct Us  : Bitfield<2, 1> { };   /* user/supervisor */
+		struct Pwt : Bitfield<3, 1> { };   /* write-through   */
+		struct Pcd : Bitfield<4, 1> { };   /* cache disable   */
+		struct A   : Bitfield<5, 1> { };   /* accessed        */
+		struct D   : Bitfield<6, 1> { };   /* dirty           */
+		struct Xd  : Bitfield<63, 1> { };  /* execute-disable */
+
+		static bool present(access_t const v) { return P::get(v); }
+
+		static access_t create(Page_flags const &flags)
+		{
+			return P::bits(1)
+				| Rw::bits(flags.writeable)
+				| Us::bits(!flags.privileged)
+				| Xd::bits(!flags.executable);
+		}
+	};
 }
 
 class Genode::Level_4_translation_table
