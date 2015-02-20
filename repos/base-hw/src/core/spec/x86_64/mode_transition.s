@@ -85,6 +85,11 @@
 	mov _mt_master_context_begin+CR3_OFFSET, %rax
 	mov %rax, %cr3
 
+	/* Save stack and instruction pointer to client context */
+	mov _mt_client_context_ptr, %rax
+	mov %rsp, SP_OFFSET(%rax)
+	mov %rcx, (%rax)
+
 	1: jmp 1b
 
 	.global _mt_user_entry_pic
