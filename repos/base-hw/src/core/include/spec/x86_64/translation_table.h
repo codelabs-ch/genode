@@ -111,32 +111,21 @@ class Genode::Level_4_translation_table
 		class Invalid_range {};
 		class Double_insertion {};
 
-		struct Descriptor : Register<64>
+		struct Descriptor : Common_descriptor
 		{
-			struct P   : Bitfield<0, 1> { };           /* present              */
-			struct Rw  : Bitfield<1, 1> { };           /* read/write           */
-			struct Us  : Bitfield<2, 1> { };           /* user/supervisor      */
-			struct Pwt : Bitfield<3, 1> { };           /* write-through        */
-			struct Pcd : Bitfield<4, 1> { };           /* cache disable        */
-			struct A   : Bitfield<5, 1> { };           /* accessed             */
-			struct D   : Bitfield<6, 1> { };           /* dirty                */
+			using Common = Common_descriptor;
+
 			struct Pat : Bitfield<7, 1> { };           /* page attribute table */
 			struct G   : Bitfield<8, 1> { };           /* global               */
 			struct Pa  : Bitfield<12, 36> { };         /* physical address     */
-			struct Xd  : Bitfield<63, 1> { };          /* execute-disable      */
 			struct Mt  : Bitset_3<Pwt, Pcd, Pat> { };  /* memory type          */
-
-			static bool present(access_t const v) { return P::get(v); }
 
 			static access_t create(Page_flags const &flags, addr_t const pa)
 			{
 				/* XXX: Set memory type depending on active PAT */
-				return P::bits(1)
-					| Rw::bits(flags.writeable)
-					| Us::bits(!flags.privileged)
+				return Common::create(flags)
 					| G::bits(flags.global)
-					| Pa::masked(pa)
-					| Xd::bits(!flags.executable);
+					| Pa::masked(pa);
 			}
 		};
 
