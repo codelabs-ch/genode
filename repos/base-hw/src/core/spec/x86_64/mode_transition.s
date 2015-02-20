@@ -90,6 +90,9 @@
 	mov %rsp, SP_OFFSET(%rax)
 	mov %rcx, (%rax)
 
+	/* Save EFLAGS in client context */
+	mov %r11, FLAGS_OFFSET(%rax)
+
 	1: jmp 1b
 
 	.global _mt_user_entry_pic
