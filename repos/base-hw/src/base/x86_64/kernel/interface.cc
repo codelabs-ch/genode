@@ -51,6 +51,7 @@ using namespace Kernel;
 	CALL_5_FILL_ARG_REGS \
 	register Call_arg arg_5_reg asm("r9") = arg_5;
 
+#define CALL_1_SYSCALL "syscall\n" : "+r" (arg_0_reg)
 
 /******************
  ** Kernel calls **
@@ -58,9 +59,9 @@ using namespace Kernel;
 
 Call_ret Kernel::call(Call_arg arg_0)
 {
-	PDBG("syscall binding not implemented");
-	for (;;);
-	return 0;
+	CALL_1_FILL_ARG_REGS
+	asm volatile(CALL_1_SYSCALL);
+	return arg_0_reg;
 }
 
 
