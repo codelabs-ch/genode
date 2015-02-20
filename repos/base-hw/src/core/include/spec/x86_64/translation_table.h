@@ -94,6 +94,17 @@ namespace Genode
 				| Us::bits(!flags.privileged)
 				| Xd::bits(!flags.executable);
 		}
+
+		/**
+		 * Merge access rights of descriptor with given flags.
+		 */
+		static void merge_access_rights(access_t &desc,
+										Page_flags const &flags)
+		{
+			Rw::set(desc, Rw::get(desc) | flags.writeable);
+			Us::set(desc, Us::get(desc) | !flags.privileged);
+			Xd::set(desc, Xd::get(desc) & !flags.executable);
+		}
 	};
 }
 
@@ -364,6 +375,7 @@ class Genode::Page_directory
 					} else if (Base_descriptor::maps_page(desc)) {
 						throw Double_insertion();
 					} else {
+						Base_descriptor::merge_access_rights(desc, flags);
 						ENTRY * phys_addr = (ENTRY*)
 							Table_descriptor::Pa::masked(desc);
 						table = (ENTRY*) slab->virt_addr(phys_addr);
@@ -541,6 +553,7 @@ class Genode::PML4_table
 						ENTRY * phys_addr = (ENTRY*) slab->phys_addr(table);
 						desc = Descriptor::create(flags, (addr_t)(phys_addr ? phys_addr : table));
 					} else {
+						Descriptor::merge_access_rights(desc, flags);
 						ENTRY * phys_addr = (ENTRY*)
 							Descriptor::Pa::masked(desc);
 						table = (ENTRY*) slab->virt_addr(phys_addr);
