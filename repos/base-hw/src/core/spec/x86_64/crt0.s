@@ -74,6 +74,15 @@
 	mov %eax, %ss
 
 	/*
+	 * Set up syscall handling
+	 *
+	 * Specify segments in IA32_STAR
+	 */
+	mov $0xc0000081, %ecx
+	xor %rax, %rax
+	mov $0x1b0008, %rdx
+	wrmsr
+
 	 * Install initial temporary environment that is replaced later by the
 	 * environment that init_main_thread creates.
 	 */
