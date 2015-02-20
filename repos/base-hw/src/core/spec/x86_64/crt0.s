@@ -83,6 +83,13 @@
 	mov $0x1b0008, %rdx
 	wrmsr
 
+	/* Specify RIP in IA32_LSTAR */
+	mov $0xc0000082, %ecx
+	mov $_mt_kernel_entry_pic, %rax
+	mov $_mt_kernel_entry_pic, %rdx
+	shr $32, %rdx
+	wrmsr
+
 	 * Install initial temporary environment that is replaced later by the
 	 * environment that init_main_thread creates.
 	 */
