@@ -255,7 +255,7 @@ int PGMR3PhysMMIO2Unmap(PVM pVM, PPDMDEVINS pDevIns, uint32_t iRegion,
 
 	bool INVALIDATE = true;
 	bool ok = vmm_memory()->unmap_from_vm(GCPhys, size, INVALIDATE);
-	Assert(ok);
+//	Assert(ok);
 
 #ifdef VBOX_WITH_REM
 	REMR3NotifyPhysRamDeregister(pVM, GCPhysStart, size);
