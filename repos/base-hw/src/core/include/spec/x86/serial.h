@@ -128,12 +128,12 @@ namespace Genode {
 			 *
 			 * XXX: The 'baud_rate' argument is ignored for now.
 			 */
-			Serial(unsigned) : _comport(0x1808)
+			Serial(unsigned) : _comport(0x3f8)
 			{
 				init_comport(_comport, 115200);
 			}
 
-			Serial(const char *s) : _comport(0x1808)
+			Serial(const char *s) : _comport(0x3f8)
 			{
 				init_comport(_comport, 115200);
 
