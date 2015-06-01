@@ -73,6 +73,10 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POLL");
 			return VINF_SUCCESS;
 
+		case VMMR0_DO_GVMM_SCHED_POKE:
+			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POKE");
+			return VINF_SUCCESS;
+
 		default:
 			PERR("SUPR3CallVMMR0Ex: unhandled uOperation %d", uOperation);
 			return VERR_GENERAL_FAILURE;
