@@ -55,7 +55,12 @@ extern "C" {
 
 	int pthread_cancel(pthread_t thread)
 	{
-		destroy(env()->heap(), thread);
+		char name[Thread_base::Context::NAME_LEN];
+		thread->name(name, sizeof(name));
+
+		PERR("skip destruction of thread '%s' because of base_hw scheduler bug issue #1537", name);
+
+//		destroy(env()->heap(), thread);
 		return 0;
 	}
 
