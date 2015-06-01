@@ -115,7 +115,7 @@ proc run_boot_dir {binaries} {
 		foreach binary $binaries {
 			if {$binary != "core"} {
 				puts $fh " module /genode/$binary" } }
-		puts $fh " vbeset 0x117 506070"
+#		puts $fh " vbeset 0x117 506070"
 		close $fh
 	}
 
