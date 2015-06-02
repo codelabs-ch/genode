@@ -1,1 +1,1 @@
-include $(REP_DIR)/lib/mk/virtualbox-hwaccl-off.inc
+LIBS=virtualbox-hwaccl-muen
