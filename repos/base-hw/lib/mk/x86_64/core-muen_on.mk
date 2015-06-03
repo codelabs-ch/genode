@@ -15,6 +15,9 @@ SRC_CC += spec/x86_64/muen/kernel/thread.cc
 SRC_CC += spec/x86_64/muen/kernel/cpu.cc
 SRC_CC += spec/x86_64/muen/platform_support.cc
 SRC_CC += spec/x86_64/muen/sinfo.cc
+SRC_CC += spec/x86_64/muen/kernel/vm.cc
+SRC_CC += spec/x86_64/muen/platform_services.cc
+SRC_CC += kernel/vm_thread_on.cc
 
 # include less specific configuration
 include $(REP_DIR)/lib/mk/x86_64/core.inc
