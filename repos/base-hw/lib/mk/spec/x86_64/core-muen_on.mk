@@ -17,6 +17,9 @@ SRC_CC += spec/x86_64/muen/kernel/cpu_exception.cc
 SRC_CC += spec/x86_64/muen/kernel/thread_exception.cc
 SRC_CC += spec/x86_64/muen/platform_support.cc
 SRC_CC += spec/x86_64/muen/sinfo.cc
+SRC_CC += spec/x86_64/muen/kernel/vm.cc
+SRC_CC += spec/x86_64/muen/platform_services.cc
+SRC_CC += kernel/vm_thread_on.cc
 
 # core.inc files use BASE_HW_DIR in order to allow
 # including these files from other repositories
