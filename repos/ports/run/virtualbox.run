@@ -40,7 +40,12 @@ set config {
 		<service name="RM"/>
 		<service name="CPU"/>
 		<service name="LOG"/>
-		<service name="SIGNAL"/>
+		<service name="SIGNAL"/>}
+
+append_if [have_spec muen] config {
+		<service name="VM"/>}
+
+append config {
 	</parent-provides>
 	<default-route>
 		<any-service> <parent/> <any-child/> </any-service>
