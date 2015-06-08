@@ -37,6 +37,8 @@
 /* Libc include */
 #include <pthread.h>
 
+static Genode::Signal_context_capability _sig_cap;
+
 /* VirtualBox SUPLib interface */
 static Genode::Vm_session *vm_session(void)
 {
@@ -52,7 +54,8 @@ static Genode::Signal_receiver *signal_receiver()
 	if (!sr)
 	{
 		sr = new (Genode::env()->heap())Genode::Signal_receiver();
-		vm_session()->exception_handler(sr->manage(&sc));
+		_sig_cap = sr->manage(&sc);
+		vm_session()->exception_handler(_sig_cap);
 	}
 
 	return sr;
@@ -185,6 +188,9 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 		case VMMR0_DO_GVMM_SCHED_POKE:
 			vm_session()->pause();
 			/* Send signal */
+			if (_sig_cap.valid())
+				Genode::Signal_transmitter(_sig_cap).submit();
+
 			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POKE");
 			return VINF_SUCCESS;
 
