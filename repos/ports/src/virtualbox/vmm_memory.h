@@ -35,6 +35,7 @@
 
 /* VirtualBox includes */
 #include <VBox/vmm/pgm.h>
+#include <VBox/vmm/pdmdev.h>
 
 
 class Vmm_memory
@@ -173,7 +174,9 @@ class Vmm_memory
 			Mem_region *r = _lookup_unsynchronized(pDevIns, iRegion);
 
 			if (r) r->vm_phys = GCPhys;
-
+			PDBG("Mapping region for dev %s to guest-phys 0x%lx, size 0x%zx",
+				pDevIns && pDevIns->pReg ? pDevIns->pReg->szName : 0,
+				r->vm_phys, r->size());
 			return r ? r->size() : 0;
 		}
 
