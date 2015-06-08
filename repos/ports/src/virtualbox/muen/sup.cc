@@ -16,6 +16,7 @@
 /* Genode includes */
 #include <base/printf.h>
 #include <base/semaphore.h>
+#include <os/attached_io_mem_dataspace.h>
 
 /* VirtualBox includes */
 #include "HMInternal.h" /* enable access to hm.s.* */
@@ -25,6 +26,7 @@
 
 /* Genode's VirtualBox includes */
 #include "sup.h"
+#include "vcpu.h"
 #include "vmm_memory.h"
 
 /* Libc include */
@@ -37,7 +39,75 @@ int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
 int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 {
-	return VERR_INTERNAL_ERROR;	
+	static Genode::Attached_io_mem_dataspace subject_state(0xf00000000, 0x1000);
+
+	switch (uOperation) {
+	case SUP_VMMR0_DO_HM_RUN:
+		struct Subject_state *cur_state = subject_state.local_addr<struct Subject_state>();
+		VM     * pVM   = reinterpret_cast<VM *>(pVMR0);
+		PVMCPU   pVCpu = &pVM->aCpus[idCpu];
+		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
+
+		cur_state->Rip = pCtx->rip;
+		cur_state->Rsp = pCtx->rsp;
+
+		cur_state->Regs.Rax = pCtx->rax;
+		cur_state->Regs.Rbx = pCtx->rbx;
+		cur_state->Regs.Rcx = pCtx->rcx;
+		cur_state->Regs.Rdx = pCtx->rdx;
+		cur_state->Regs.Rbp = pCtx->rbp;
+		cur_state->Regs.Rsi = pCtx->rsi;
+		cur_state->Regs.Rdi = pCtx->rdi;
+		cur_state->Regs.R08 = pCtx->r8;
+		cur_state->Regs.R09 = pCtx->r9;
+		cur_state->Regs.R10 = pCtx->r10;
+		cur_state->Regs.R11 = pCtx->r11;
+		cur_state->Regs.R12 = pCtx->r12;
+		cur_state->Regs.R13 = pCtx->r13;
+		cur_state->Regs.R14 = pCtx->r14;
+		cur_state->Regs.R15 = pCtx->r15;
+
+		cur_state->Rflags = pCtx->rflags.u;
+
+		cur_state->Shadow_cr0 = pCtx->cr0;
+		cur_state->Cr0  = pCtx->cr0;
+		cur_state->Cr0 |= 1 << 5;
+		cur_state->Regs.Cr2 = pCtx->cr2;
+		cur_state->Cr3  = pCtx->cr3;
+		cur_state->Cr4  = pCtx->cr4;
+		cur_state->Cr4  |= 1 << 13;
+
+		cur_state->Cs = pCtx->cs.Sel;
+		cur_state->Ss = pCtx->ss.Sel;
+
+		cur_state->Ia32_efer = CPUMGetGuestEFER(pVCpu);
+
+		/*
+		utcb->sysenter_cs = pCtx->SysEnter.cs;
+		utcb->sysenter_sp = pCtx->SysEnter.esp;
+		utcb->sysenter_ip = pCtx->SysEnter.eip;
+		utcb->dr7  = pCtx->dr[7];
+
+		utcb->idtr.limit  = pCtx->idtr.cbIdt;
+		utcb->idtr.base   = pCtx->idtr.pIdt;
+		utcb->gdtr.limit  = pCtx->gdtr.cbGdt;
+		utcb->gdtr.base   = pCtx->gdtr.pGdt;
+
+		TODO: For all segments, tr
+
+		cur_state->ldtr.sel   = pCtx->ldtr.Sel;
+		cur_state->ldtr.limit = pCtx->ldtr.u32Limit;
+		cur_state->ldtr.base  = pCtx->ldtr.u64Base;
+		cur_state->ldtr.ar    = pCtx->ldtr.Attr.u;
+		*/
+
+		/* Move to assembly -> done by vm_session()->run() */
+		asm volatile ("vmcall" : : "a" (1) : "memory");
+
+		return VINF_EM_RAW_EMULATE_INSTR;
+	}
+
+	return VERR_INTERNAL_ERROR;
 }
 
 
