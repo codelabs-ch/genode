@@ -152,7 +152,7 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POKE:
-			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POKE");
+			vm_handler.poke();
 			return VINF_SUCCESS;
 
 		default:
