@@ -15,8 +15,13 @@
 
 /* Genode includes */
 #include <base/printf.h>
+#include <base/env.h>
 #include <base/semaphore.h>
+#include <base/signal.h>
 #include <os/attached_io_mem_dataspace.h>
+
+#include <vm_session/vm_session.h>
+#include <vm_session/connection.h>
 
 /* VirtualBox includes */
 #include "HMInternal.h" /* enable access to hm.s.* */
@@ -33,6 +38,26 @@
 #include <pthread.h>
 
 /* VirtualBox SUPLib interface */
+static Genode::Vm_session *vm_session(void)
+{
+	static Genode::Vm_connection vms;
+	return &vms;
+};
+
+static Genode::Signal_receiver *signal_receiver()
+{
+	static Genode::Signal_receiver *sr = nullptr;
+	static Genode::Signal_context sc;
+
+	if (!sr)
+	{
+		sr = new (Genode::env()->heap())Genode::Signal_receiver();
+		vm_session()->exception_handler(sr->manage(&sc));
+	}
+
+	return sr;
+};
+
 
 int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
@@ -107,7 +132,11 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		Genode::memcpy(&cur_state->Xsave_area, &pCtx->fpu, sizeof(pCtx->fpu));
 
 		/* Move to assembly -> done by vm_session()->run() */
-		asm volatile ("vmcall" : : "a" (1) : "memory");
+//		asm volatile ("vmcall" : : "a" (1) : "memory");
+
+		vm_session()->run();
+		signal_receiver()->wait_for_signal();
+		PDBG("signal received");
 
 		return VINF_EM_RAW_EMULATE_INSTR;
 	}
@@ -154,6 +183,8 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POKE:
+			vm_session()->pause();
+			/* Send signal */
 			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POKE");
 			return VINF_SUCCESS;
 
