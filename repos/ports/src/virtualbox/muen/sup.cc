@@ -370,8 +370,29 @@ resume:
 					goto resume;
 				}
 				break;
-			default:
+			case 0x01: // External interrupt
+			case 0x02: // Triple fault
+			case 0x09: // Task switch
+			case 0x0a: // CPUID
+			case 0x0c: // HLT
+			case 0x0e: // INVLPG
+			case 0x10: // RDTSC
+			case 0x1d: // MOV DR
+			case 0x1e: // I/O instruction
+			case 0x1f: // RDMSR
+			case 0x20: // WRMSR
+			case 0x28: // PAUSE
+			case 0x30: // EPT violation
+			case 0x36: // WBINVD
 				break;
+			default:
+				PDBG("VM exited with exit reason %llx", cur_state->Exit_reason);
+				PDBG("-> qualification %llx", cur_state->Exit_qualification);
+				PDBG("-> interrupt info %llx", cur_state->Interrupt_info);
+				PDBG("-> RIP: %lx, RSP: %lx", cur_state->Rip, cur_state->Rsp);
+				PDBG("-> RFLAGS: %lx, EFER: %lx", cur_state->Rflags, cur_state->Ia32_efer);
+				PDBG("-> CR0: %lx, CR2: %lx, CR3: %lx, CR4: %lx", cur_state->Cr0, cur_state->Regs.Cr2, cur_state->Cr3, cur_state->Cr4);
+				PDBG("-> CS: %lx, SS: %lx", cur_state->cs.sel, cur_state->ss.sel);
 		}
 
 		CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_GLOBAL_TLB_FLUSH);
