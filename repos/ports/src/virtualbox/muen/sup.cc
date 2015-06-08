@@ -27,12 +27,16 @@
 /* Genode's VirtualBox includes */
 #include "sup.h"
 #include "vcpu.h"
+#include "vm_handler.h"
 #include "vmm_memory.h"
 
 /* Libc include */
 #include <pthread.h>
 
+static Genode::Vm_handler vm_handler;
+
 /* VirtualBox SUPLib interface */
+
 
 int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
@@ -101,8 +105,7 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		cur_state->ldtr.ar    = pCtx->ldtr.Attr.u;
 		*/
 
-		/* Move to assembly -> done by vm_session()->run() */
-		asm volatile ("vmcall" : : "a" (1) : "memory");
+		vm_handler.run_vm();
 
 		return VINF_EM_RAW_EMULATE_INSTR;
 	}
