@@ -137,7 +137,9 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		/* Move to assembly -> done by vm_session()->run() */
 //		asm volatile ("vmcall" : : "a" (1) : "memory");
 
+		PDBG("About to run");
 		vm_session()->run();
+		PDBG("Waiting for signal");
 		signal_receiver()->wait_for_signal();
 		PDBG("signal received");
 

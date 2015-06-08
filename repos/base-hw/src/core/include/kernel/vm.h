@@ -102,12 +102,14 @@ class Kernel::Vm : public Cpu_job,
 
 		void run()
 		{
+			PDBG("VM: run() called");
 			if (_scheduled != ACTIVE) Cpu_job::_activate_own_share();
 			_scheduled = ACTIVE;
 		}
 
 		void pause()
 		{
+			PDBG("VM: pause() called");
 			if (_scheduled != INACTIVE) Cpu_job::_deactivate_own_share();
 			_scheduled = INACTIVE;
 		}

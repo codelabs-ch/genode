@@ -52,7 +52,9 @@ void Kernel::Vm::exception(unsigned const cpu_id)
 
 void Kernel::Vm::proceed(unsigned const cpu_id)
 {
+	PDBG("VM: proceed called");
 	asm volatile ("vmcall" : : "a" (1) : "memory");
+	PDBG("VM: vmcall returned");
 }
 
 
