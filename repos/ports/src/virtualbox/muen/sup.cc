@@ -18,6 +18,8 @@
 #include <base/semaphore.h>
 
 /* VirtualBox includes */
+#include "HMInternal.h" /* enable access to hm.s.* */
+#include "CPUMInternal.h" /* enable access to cpum.s.* */
 #include <VBox/vmm/vm.h>
 #include <VBox/err.h>
 
@@ -30,10 +32,8 @@
 
 /* VirtualBox SUPLib interface */
 
-int SUPR3QueryVTxSupported(void)
-{
-	return VERR_INTERNAL_ERROR;	
-}
+int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
+
 
 int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 {
@@ -66,11 +66,16 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_VMMR0_INIT:
+			reinterpret_cast<VM *>(pVMR0)->hm.s.svm.fSupported = false;
+			reinterpret_cast<VM *>(pVMR0)->hm.s.vmx.fSupported = true;
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POLL:
 			/* called by 'vmR3HaltGlobal1Halt' */
 			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POLL");
+			return VINF_SUCCESS;
+
+		case VMMR0_DO_HM_SETUP_VM:
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POKE:
