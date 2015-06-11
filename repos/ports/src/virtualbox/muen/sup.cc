@@ -38,6 +38,28 @@ static Genode::Vm_handler vm_handler;
 
 /* VirtualBox SUPLib interface */
 
+inline bool continue_hw_accelerated(PVMR0 pVMR0, VMCPUID idCpu)
+{
+	VM     * pVM   = reinterpret_cast<VM *>(pVMR0);
+	PVMCPU   current_vcpu = &pVM->aCpus[idCpu];
+
+	uint32_t check_vm = VM_FF_HM_TO_R3_MASK | VM_FF_REQUEST
+	                    | VM_FF_PGM_POOL_FLUSH_PENDING
+	                    | VM_FF_PDM_DMA;
+	uint32_t check_vcpu = VMCPU_FF_HM_TO_R3_MASK
+	                      | VMCPU_FF_PGM_SYNC_CR3
+	                      | VMCPU_FF_PGM_SYNC_CR3_NON_GLOBAL
+	                      | VMCPU_FF_REQUEST;
+
+	if (!VM_FF_IS_PENDING(pVM, check_vm) &&
+	    !VMCPU_FF_IS_PENDING(current_vcpu, check_vcpu))
+		return true;
+
+	Assert(!(VM_FF_IS_PENDING(pVM, VM_FF_PGM_NO_MEMORY)));
+
+	return false;
+}
+
 
 int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
@@ -150,7 +172,7 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		REMFlushTBs(pVM);
 #endif
 
-		return VINF_EM_RAW_EMULATE_INSTR;
+		return continue_hw_accelerated(pVMR0, idCpu) ? VINF_SUCCESS : VINF_EM_RAW_EMULATE_INSTR;
 	}
 
 	return VERR_INTERNAL_ERROR;
