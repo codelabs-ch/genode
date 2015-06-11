@@ -22,6 +22,7 @@
 #include "HMInternal.h" /* enable access to hm.s.* */
 #include "CPUMInternal.h" /* enable access to cpum.s.* */
 #include <VBox/vmm/vm.h>
+#include <VBox/vmm/rem.h>
 #include <VBox/err.h>
 
 /* Genode's VirtualBox includes */
@@ -106,6 +107,11 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		*/
 
 		vm_handler.run_vm();
+
+#ifdef VBOX_WITH_REM
+		/* XXX see VMM/VMMR0/HMVMXR0.cpp - not necessary every time ! XXX */
+		REMFlushTBs(pVM);
+#endif
 
 		return VINF_EM_RAW_EMULATE_INSTR;
 	}
