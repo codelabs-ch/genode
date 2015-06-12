@@ -24,6 +24,7 @@
 #include "CPUMInternal.h" /* enable access to cpum.s.* */
 #include <VBox/vmm/vm.h>
 #include <VBox/vmm/rem.h>
+#include <VBox/vmm/pdmapi.h>
 #include <VBox/err.h>
 
 /* Genode's VirtualBox includes */
@@ -40,6 +41,17 @@ static Genode::Vm_handler vm_handler;
 /* VirtualBox SUPLib interface */
 
 
+inline bool has_pending_irq(PVMCPU pVCpu)
+{
+	if (!TRPMHasTrap(pVCpu) &&
+		!VMCPU_FF_IS_PENDING(pVCpu, (VMCPU_FF_INTERRUPT_APIC |
+		                             VMCPU_FF_INTERRUPT_PIC)))
+		return false;
+
+	return true;
+}
+
+
 int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
 
@@ -53,6 +65,9 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		VM     * pVM   = reinterpret_cast<VM *>(pVMR0);
 		PVMCPU   pVCpu = &pVM->aCpus[idCpu];
 		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
+
+		if (has_pending_irq(pVCpu))
+			PDBG("Must inject IRQ");
 
 		cur_state->Rip = pCtx->rip;
 		cur_state->Rsp = pCtx->rsp;
