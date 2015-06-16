@@ -106,7 +106,44 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		cur_state->ldtr.ar    = pCtx->ldtr.Attr.u;
 		*/
 
+		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
+
 		vm_handler.run_vm();
+
+		CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_GLOBAL_TLB_FLUSH);
+
+		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED);
+
+		pCtx->rip = cur_state->Rip;
+		pCtx->rsp = cur_state->Rsp;
+
+		pCtx->rax = cur_state->Regs.Rax;
+		pCtx->rbx = cur_state->Regs.Rbx;
+		pCtx->rcx = cur_state->Regs.Rcx;
+		pCtx->rdx = cur_state->Regs.Rdx;
+		pCtx->rbp = cur_state->Regs.Rbp;
+		pCtx->rsi = cur_state->Regs.Rsi;
+		pCtx->rdi = cur_state->Regs.Rdi;
+		pCtx->r8  = cur_state->Regs.R08;
+		pCtx->r9  = cur_state->Regs.R09;
+		pCtx->r10 = cur_state->Regs.R10;
+		pCtx->r11 = cur_state->Regs.R11;
+		pCtx->r12 = cur_state->Regs.R12;
+		pCtx->r13 = cur_state->Regs.R13;
+		pCtx->r14 = cur_state->Regs.R14;
+		pCtx->r15 = cur_state->Regs.R15;
+
+		pCtx->rflags.u = cur_state->Rflags;
+
+		pCtx->cr0 = cur_state->Cr0;
+		pCtx->cr2 = cur_state->Regs.Cr2;
+		pCtx->cr3 = cur_state->Cr3;
+		pCtx->cr4 = cur_state->Cr4;
+
+		pCtx->cs.Sel = cur_state->Cs;
+		pCtx->ss.Sel = cur_state->Ss;
+
+		CPUMSetGuestEFER(pVCpu, cur_state->Ia32_efer);
 
 #ifdef VBOX_WITH_REM
 		/* XXX see VMM/VMMR0/HMVMXR0.cpp - not necessary every time ! XXX */
