@@ -16,19 +16,8 @@
 
 namespace Genode
 {
-	/**
-	 * Pseudo context of a virtual machine
-	 *
-	 */
-	struct Vm_state;
-
 	using Cpu_state_modes = Cpu_state;
+	using Vm_state = Cpu_state;
 }
-
-struct Genode::Vm_state
-{
-	addr_t trapno;
-	addr_t errcode;
-};
 
 #endif /* _VM_STATE_H_ */
