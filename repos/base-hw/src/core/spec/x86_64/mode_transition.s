@@ -246,6 +246,14 @@
 
 	iretq
 
+	/* WIP VM entry */
+
+	.global _vt_vm_entry
+	_vt_vm_entry:
+	mov $1, %rax
+	sti
+	vmcall
+
 	/************************************************
 	 ** Space for Interrupt Descriptor Table (IDT) **
 	 ** See Intel SDM Vol. 3A, section 6.10        **
