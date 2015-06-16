@@ -16,6 +16,8 @@
 #include <cpu/cpu_state.h>
 #include <pic.h>
 
+extern void * _vt_vm_entry;
+extern void * _mt_client_context_ptr;
 
 Kernel::Vm::Vm(void * const state, Kernel::Signal_context * const context,
                void * const)
@@ -54,7 +56,8 @@ void Kernel::Vm::exception(unsigned const cpu_id)
 
 void Kernel::Vm::proceed(unsigned const cpu_id)
 {
-	asm volatile ("vmcall" : : "a" (1) : "memory");
+	mtc()->switch_to(reinterpret_cast<Cpu::Context*>(_state), cpu_id,
+	                 (addr_t) &_vt_vm_entry, (addr_t) &_mt_client_context_ptr);
 }
 
 
