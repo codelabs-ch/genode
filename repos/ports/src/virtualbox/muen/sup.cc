@@ -184,6 +184,7 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 		case VMMR0_DO_VMMR0_INIT:
 			reinterpret_cast<VM *>(pVMR0)->hm.s.svm.fSupported = false;
 			reinterpret_cast<VM *>(pVMR0)->hm.s.vmx.fSupported = true;
+			reinterpret_cast<VM *>(pVMR0)->hm.s.vmx.fAllowUnrestricted = false;
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POLL:
