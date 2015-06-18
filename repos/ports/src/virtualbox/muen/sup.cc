@@ -73,6 +73,52 @@ inline bool has_pending_irq(PVMCPU pVCpu)
 }
 
 
+inline void inject_irq(PVMCPU pVCpu)
+{
+	int rc;
+
+	if (!TRPMHasTrap(pVCpu)) {
+		bool res = VMCPU_FF_TEST_AND_CLEAR(pVCpu, VMCPU_FF_INTERRUPT_NMI);
+		Assert(!res);
+
+		if (VMCPU_FF_IS_PENDING(pVCpu, (VMCPU_FF_INTERRUPT_APIC |
+						VMCPU_FF_INTERRUPT_PIC))) {
+
+			uint8_t irq;
+			rc = PDMGetInterrupt(pVCpu, &irq);
+			Assert(RT_SUCCESS(rc));
+
+			rc = TRPMAssertTrap(pVCpu, irq, TRPM_HARDWARE_INT);
+			Assert(RT_SUCCESS(rc));
+		}
+	}
+
+	Assert(TRPMHasTrap(pVCpu));
+
+	uint8_t   u8Vector;
+	TRPMEVENT enmType;
+	RTGCUINT  u32ErrorCode;
+
+	/* If a new event is pending, then dispatch it now. */
+	rc = TRPMQueryTrapAll(pVCpu, &u8Vector, &enmType, 0, 0, 0);
+	AssertRC(rc);
+	Assert(enmType == TRPM_HARDWARE_INT);
+	Assert(u8Vector != X86_XCPT_NMI);
+
+	/* Clear the pending trap. */
+	rc = TRPMResetTrap(pVCpu);
+	AssertRC(rc);
+
+	switch (u8Vector) {
+		case 32: // Timer
+			asm volatile ("vmcall" : : "a" (2) : "memory");
+			break;
+		default:
+			PDBG("No event to inject interrupt %u", u8Vector);
+	}
+}
+
+
 int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
 
@@ -88,7 +134,7 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
 
 		if (has_pending_irq(pVCpu))
-			PDBG("Must inject IRQ");
+			inject_irq(pVCpu);
 
 		cur_state->Rip = pCtx->rip;
 		cur_state->Rsp = pCtx->rsp;
