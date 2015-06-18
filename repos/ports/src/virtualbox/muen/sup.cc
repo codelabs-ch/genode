@@ -218,10 +218,20 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		pCtx->rflags.u = cur_state->Rflags;
 
-		pCtx->cr0 = cur_state->Cr0;
-		pCtx->cr2 = cur_state->Regs.Cr2;
-		pCtx->cr3 = cur_state->Cr3;
-		pCtx->cr4 = cur_state->Cr4;
+		if (pCtx->cr0 != cur_state->Cr0)
+			CPUMSetGuestCR0(pVCpu, cur_state->Cr0);
+		if (pCtx->cr2 != cur_state->Regs.Cr2)
+			CPUMSetGuestCR2(pVCpu, cur_state->Regs.Cr2);
+		if (pCtx->cr4 != cur_state->Cr4)
+			CPUMSetGuestCR4(pVCpu, cur_state->Cr4);
+
+		/*
+		 * Guest CR3 must be handled after saving CR0 & CR4.
+		 * See HMVMXR0.cpp, function hmR0VmxSaveGuestControlRegs
+		 */
+		if (pCtx->cr3 != cur_state->Cr3) {
+			CPUMSetGuestCR3(pVCpu, cur_state->Cr3);
+		}
 
 		pCtx->cs.Sel = cur_state->Cs;
 		pCtx->ss.Sel = cur_state->Ss;
