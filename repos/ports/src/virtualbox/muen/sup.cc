@@ -110,8 +110,17 @@ inline void inject_irq(PVMCPU pVCpu)
 	AssertRC(rc);
 
 	switch (u8Vector) {
-		case 32: // Timer
+		case 48: // Timer
 			asm volatile ("vmcall" : : "a" (2) : "memory");
+			break;
+		case 49: // Kbd
+			asm volatile ("vmcall" : : "a" (3) : "memory");
+			break;
+		case 63: // Ata
+			asm volatile ("vmcall" : : "a" (4) : "memory");
+			break;
+		case 239: // LOC (Local timer interrupts)
+			asm volatile ("vmcall" : : "a" (5) : "memory");
 			break;
 		default:
 			PDBG("No event to inject interrupt %u", u8Vector);
@@ -120,7 +129,6 @@ inline void inject_irq(PVMCPU pVCpu)
 
 
 int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
-
 
 int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 {
