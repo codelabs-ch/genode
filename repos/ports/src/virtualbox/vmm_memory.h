@@ -28,6 +28,9 @@
 #include <util/list.h>
 #include <os/attached_ram_dataspace.h>
 
+/* Genode/Virtualbox includes */
+#include "mem_region.h"
+
 #define PAGE_SIZE BACKUP_PAGESIZE
 
 /* VirtualBox includes */
@@ -36,55 +39,33 @@
 
 class Vmm_memory
 {
-	struct Region;
-
-	typedef Genode::Ram_session            Ram_session;
-	typedef Genode::Rm_session             Rm_session;
-	typedef Genode::size_t                 size_t;
-	typedef Genode::Lock                   Lock;
-	typedef Genode::Attached_ram_dataspace Attached_ram_dataspace;
-	typedef Genode::List<Region>           Region_list;
+	typedef Genode::Ram_session      Ram_session;
+	typedef Genode::Rm_session       Rm_session;
+	typedef Genode::size_t           size_t;
+	typedef Genode::Lock             Lock;
+	typedef Genode::List<Mem_region> Mem_region_list;
 
 	private:
 
-		struct Region : Region_list::Element, Attached_ram_dataspace
-		{
-			PPDMDEVINS           pDevIns;
-			unsigned const       iRegion;
-			RTGCPHYS             vm_phys; 
-			PFNPGMR3PHYSHANDLER  pfnHandlerR3;
-			void                *pvUserR3;
-			PGMPHYSHANDLERTYPE   enmType;
-
-			Region(Ram_session &ram, size_t size, PPDMDEVINS pDevIns,
-			           unsigned iRegion)
-			:
-				Attached_ram_dataspace(&ram, size),
-				pDevIns(pDevIns),
-				iRegion(iRegion),
-				vm_phys(0), pfnHandlerR3(0), pvUserR3(0)
-			{ }
-		};
-
-		Lock        _lock;
-		Region_list _regions;
+		Lock            _lock;
+		Mem_region_list _regions;
 
 		/**
 		 * Backing store
 		 */
 		Genode::Ram_session &_ram;
 
-		Region *_lookup_unsynchronized(PPDMDEVINS pDevIns, unsigned iRegion)
+		Mem_region *_lookup_unsynchronized(PPDMDEVINS pDevIns, unsigned iRegion)
 		{
-			for (Region *r = _regions.first(); r; r = r->next())
+			for (Mem_region *r = _regions.first(); r; r = r->next())
 				if (r->pDevIns == pDevIns && r->iRegion == iRegion)
 					return r;
 			return 0;
 		}
 
-		Region *_lookup_unsynchronized(RTGCPHYS vm_phys, size_t size)
+		Mem_region *_lookup_unsynchronized(RTGCPHYS vm_phys, size_t size)
 		{
-			for (Region *r = _regions.first(); r; r = r->next())
+			for (Mem_region *r = _regions.first(); r; r = r->next())
 				if (r->vm_phys && r->vm_phys <= vm_phys
 				    && vm_phys - r->vm_phys < r->size()
 				    && r->size() - (vm_phys - r->vm_phys) >= size)
@@ -106,8 +87,8 @@ class Vmm_memory
 			Lock::Guard guard(_lock);
 
 			try {
-				Region *r = new (Genode::env()->heap())
-				                Region(_ram, cb, pDevIns, iRegion);
+				Mem_region *r = new (Genode::env()->heap())
+				                Mem_region(_ram, cb, pDevIns, iRegion);
 				_regions.insert(r);
 
 				return r->local_addr<void>();
@@ -139,7 +120,7 @@ class Vmm_memory
 		{
 			Lock::Guard guard(_lock);
 
-			Region *r = _lookup_unsynchronized(vm_phys, size);
+			Mem_region *r = _lookup_unsynchronized(vm_phys, size);
 
 			if (!r) return false;
 
@@ -157,7 +138,7 @@ class Vmm_memory
 		{
 			Lock::Guard guard(_lock);
 
-			Region *r = _lookup_unsynchronized(vm_phys, size);
+			Mem_region *r = _lookup_unsynchronized(vm_phys, size);
 
 			if (!r) return 0;
 
@@ -173,7 +154,7 @@ class Vmm_memory
 		{
 			Lock::Guard guard(_lock);
 
-			Region *r = _lookup_unsynchronized(vm_phys, size);
+			Mem_region *r = _lookup_unsynchronized(vm_phys, size);
 
 			if (!r)
 				return false;
@@ -189,7 +170,7 @@ class Vmm_memory
 		{
 			Lock::Guard guard(_lock);
 
-			Region *r = _lookup_unsynchronized(pDevIns, iRegion);
+			Mem_region *r = _lookup_unsynchronized(pDevIns, iRegion);
 
 			if (r) r->vm_phys = GCPhys;
 
@@ -200,7 +181,7 @@ class Vmm_memory
 		{
 			Lock::Guard guard(_lock);
 
-			Region *r = _lookup_unsynchronized(GCPhys, size);
+			Mem_region *r = _lookup_unsynchronized(GCPhys, size);
 			if (!r) return false;
 
 			bool result = revoke_from_vm(r);
@@ -214,7 +195,7 @@ class Vmm_memory
 		/**
 		 * Platform specific implemented.
 		 */
-		bool revoke_from_vm(Region *r);
+		bool revoke_from_vm(Mem_region *r);
 
 		/**
 		 * Revoke all memory (RAM or ROM) from VM
@@ -223,7 +204,7 @@ class Vmm_memory
 		{
 			Lock::Guard guard(_lock);
 
-			for (Region *r = _regions.first(); r; r = r->next())
+			for (Mem_region *r = _regions.first(); r; r = r->next())
 			{
 				bool ok = revoke_from_vm(r);
 				Assert(ok);
