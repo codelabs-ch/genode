@@ -35,6 +35,14 @@
 /* Libc include */
 #include <pthread.h>
 
+#define GENODE_READ_SELREG(REG) \
+	pCtx->REG.Sel      = cur_state->REG.sel; \
+	pCtx->REG.ValidSel = cur_state->REG.sel; \
+	pCtx->REG.fFlags   = CPUMSELREG_FLAGS_VALID; \
+	pCtx->REG.u32Limit = cur_state->REG.limit; \
+	pCtx->REG.u64Base  = cur_state->REG.base; \
+	pCtx->REG.Attr.u   = cur_state->REG.access
+
 static Genode::Vm_handler vm_handler;
 
 /* VirtualBox SUPLib interface */
