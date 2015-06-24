@@ -36,6 +36,8 @@
 /* Libc include */
 #include <pthread.h>
 
+enum { VMCS_SEG_UNUSABLE = 0x10000 };
+
 #define GENODE_READ_SELREG(REG) \
 	pCtx->REG.Sel      = cur_state->REG.sel; \
 	pCtx->REG.ValidSel = cur_state->REG.sel; \
@@ -43,6 +45,14 @@
 	pCtx->REG.u32Limit = cur_state->REG.limit; \
 	pCtx->REG.u64Base  = cur_state->REG.base; \
 	pCtx->REG.Attr.u   = cur_state->REG.access
+
+#define GENODE_WRITE_SELREG(REG) \
+	Assert(pCtx->REG.fFlags & CPUMSELREG_FLAGS_VALID); \
+	Assert(pCtx->REG.ValidSel == pCtx->REG.Sel); \
+	cur_state->REG.sel   = pCtx->REG.Sel; \
+	cur_state->REG.limit = pCtx->REG.u32Limit; \
+	cur_state->REG.base  = pCtx->REG.u64Base; \
+	cur_state->REG.access = pCtx->REG.Attr.u ? : VMCS_SEG_UNUSABLE
 
 static Genode::Vm_handler vm_handler;
 
