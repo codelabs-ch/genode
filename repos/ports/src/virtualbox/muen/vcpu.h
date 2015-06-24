@@ -21,6 +21,14 @@ struct Cpu_registers
 	Genode::uint64_t R15;
 } __attribute__((packed));
 
+struct Segment
+{
+	Genode::uint64_t sel;
+	Genode::uint64_t base;
+	Genode::uint32_t limit;
+	Genode::uint32_t access;
+} __attribute__((packed));
+
 struct Subject_state
 {
 	struct Cpu_registers Regs;
