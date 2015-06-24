@@ -39,7 +39,6 @@ struct Subject_state
 	Genode::uint64_t Instruction_len;
 	Genode::uint64_t Rip;
 	Genode::uint64_t Rsp;
-	Genode::uint64_t Ss;
 	Genode::uint64_t Cr0;
 	Genode::uint64_t Shadow_cr0;
 	Genode::uint64_t Cr3;
@@ -47,5 +46,6 @@ struct Subject_state
 	Genode::uint64_t Rflags;
 	Genode::uint64_t Ia32_efer;
 	Segment cs;
+	Segment ss;
 } __attribute__((packed));
 
