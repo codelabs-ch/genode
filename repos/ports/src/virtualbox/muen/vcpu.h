@@ -47,5 +47,9 @@ struct Subject_state
 	Genode::uint64_t Ia32_efer;
 	Segment cs;
 	Segment ss;
+	Segment ds;
+	Segment es;
+	Segment fs;
+	Segment gs;
 } __attribute__((packed));
 
