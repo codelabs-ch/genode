@@ -37,6 +37,14 @@
 
 enum { VMCS_SEG_UNUSABLE = 0x10000 };
 
+#define GENODE_READ_SELREG_REQUIRED(REG) \
+    (pCtx->REG.Sel != cur_state->REG.sel) || \
+    (pCtx->REG.ValidSel != cur_state->REG.sel) || \
+    (pCtx->REG.fFlags   != CPUMSELREG_FLAGS_VALID) || \
+    (pCtx->REG.u32Limit != cur_state->REG.limit) || \
+    (pCtx->REG.u64Base  != cur_state->REG.base) || \
+    (pCtx->REG.Attr.u   != cur_state->REG.access)
+
 #define GENODE_READ_SELREG(REG) \
 	pCtx->REG.Sel      = cur_state->REG.sel; \
 	pCtx->REG.ValidSel = cur_state->REG.sel; \
@@ -208,6 +216,14 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		GENODE_WRITE_SELREG(fs);
 		GENODE_WRITE_SELREG(gs);
 
+		Assert(pCtx->tr.Attr.u & X86_SEL_TYPE_SYS_TSS_BUSY_MASK);
+		{
+			cur_state->tr.sel    = pCtx->tr.Sel;
+			cur_state->tr.limit  = pCtx->tr.u32Limit;
+			cur_state->tr.base   = pCtx->tr.u64Base;
+			cur_state->tr.access = pCtx->tr.Attr.u;
+		}
+
 		cur_state->Ia32_efer = CPUMGetGuestEFER(pVCpu);
 
 		/*
@@ -279,6 +295,11 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		GENODE_READ_SELREG(es);
 		GENODE_READ_SELREG(fs);
 		GENODE_READ_SELREG(gs);
+
+		if (GENODE_READ_SELREG_REQUIRED(tr)) {
+			GENODE_READ_SELREG(tr);
+			CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_TR);
+		}
 
 		CPUMSetGuestEFER(pVCpu, cur_state->Ia32_efer);
 
