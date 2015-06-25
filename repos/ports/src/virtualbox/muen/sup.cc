@@ -201,6 +201,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		cur_state->Rflags = pCtx->rflags.u;
 
+		cur_state->Sysenter_cs  = pCtx->SysEnter.cs;
+		cur_state->Sysenter_eip = pCtx->SysEnter.eip;
+		cur_state->Sysenter_esp = pCtx->SysEnter.esp;
+
 		cur_state->Shadow_cr0 = pCtx->cr0;
 		cur_state->Cr0  = pCtx->cr0;
 		cur_state->Cr0 |= 1 << 5;
@@ -243,9 +247,6 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		cur_state->Ia32_efer = CPUMGetGuestEFER(pVCpu);
 
 		/*
-		utcb->sysenter_cs = pCtx->SysEnter.cs;
-		utcb->sysenter_sp = pCtx->SysEnter.esp;
-		utcb->sysenter_ip = pCtx->SysEnter.eip;
 		utcb->dr7  = pCtx->dr[7];
 		*/
 
@@ -277,6 +278,13 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		pCtx->r15 = cur_state->Regs.R15;
 
 		pCtx->rflags.u = cur_state->Rflags;
+
+		if (pCtx->SysEnter.cs != cur_state->Sysenter_cs)
+			CPUMSetGuestMsr(pVCpu, MSR_IA32_SYSENTER_CS, cur_state->Sysenter_cs);
+		if (pCtx->SysEnter.esp != cur_state->Sysenter_esp)
+			CPUMSetGuestMsr(pVCpu, MSR_IA32_SYSENTER_ESP, cur_state->Sysenter_esp);
+		if (pCtx->SysEnter.eip != cur_state->Sysenter_eip)
+			CPUMSetGuestMsr(pVCpu, MSR_IA32_SYSENTER_EIP, cur_state->Sysenter_eip);
 
 		if (pCtx->idtr.cbIdt != cur_state->idtr.limit ||
 		    pCtx->idtr.pIdt  != cur_state->idtr.base)

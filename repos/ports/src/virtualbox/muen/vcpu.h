@@ -45,6 +45,9 @@ struct Subject_state
 	Genode::uint64_t Cr4;
 	Genode::uint64_t Rflags;
 	Genode::uint64_t Ia32_efer;
+	Genode::uint64_t Sysenter_cs;
+	Genode::uint64_t Sysenter_eip;
+	Genode::uint64_t Sysenter_esp;
 	Segment cs;
 	Segment ss;
 	Segment ds;
