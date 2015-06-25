@@ -235,6 +235,8 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 			cur_state->tr.access = pCtx->tr.Attr.u;
 		}
 
+		cur_state->idtr.limit = pCtx->idtr.cbIdt;
+		cur_state->idtr.base  = pCtx->idtr.pIdt;
 		cur_state->gdtr.limit = pCtx->gdtr.cbGdt;
 		cur_state->gdtr.base  = pCtx->gdtr.pGdt;
 
@@ -245,9 +247,6 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		utcb->sysenter_sp = pCtx->SysEnter.esp;
 		utcb->sysenter_ip = pCtx->SysEnter.eip;
 		utcb->dr7  = pCtx->dr[7];
-
-		utcb->idtr.limit  = pCtx->idtr.cbIdt;
-		utcb->idtr.base   = pCtx->idtr.pIdt;
 		*/
 
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
@@ -279,6 +278,9 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		pCtx->rflags.u = cur_state->Rflags;
 
+		if (pCtx->idtr.cbIdt != cur_state->idtr.limit ||
+		    pCtx->idtr.pIdt  != cur_state->idtr.base)
+			CPUMSetGuestIDTR(pVCpu, cur_state->idtr.base, cur_state->idtr.limit);
 		if (pCtx->gdtr.cbGdt != cur_state->gdtr.limit ||
 		    pCtx->gdtr.pGdt  != cur_state->gdtr.base)
 			CPUMSetGuestGDTR(pVCpu, cur_state->gdtr.base, cur_state->gdtr.limit);

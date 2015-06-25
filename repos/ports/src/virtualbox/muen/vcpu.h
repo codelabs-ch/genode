@@ -54,5 +54,6 @@ struct Subject_state
 	Segment tr;
 	Segment ldtr;
 	Segment gdtr;
+	Segment idtr;
 } __attribute__((packed));
 
