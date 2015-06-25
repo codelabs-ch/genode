@@ -216,6 +216,17 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		GENODE_WRITE_SELREG(fs);
 		GENODE_WRITE_SELREG(gs);
 
+		if (pCtx->ldtr.Sel == 0) {
+			cur_state->ldtr.sel    = 0;
+			cur_state->ldtr.limit  = 0;
+			cur_state->ldtr.base   = 0;
+			cur_state->ldtr.access = 0x82;
+		} else {
+			cur_state->ldtr.sel    = pCtx->ldtr.Sel;
+			cur_state->ldtr.limit  = pCtx->ldtr.u32Limit;
+			cur_state->ldtr.base   = pCtx->ldtr.u64Base;
+			cur_state->ldtr.access = pCtx->ldtr.Attr.u;
+		}
 		Assert(pCtx->tr.Attr.u & X86_SEL_TYPE_SYS_TSS_BUSY_MASK);
 		{
 			cur_state->tr.sel    = pCtx->tr.Sel;
@@ -236,13 +247,6 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		utcb->idtr.base   = pCtx->idtr.pIdt;
 		utcb->gdtr.limit  = pCtx->gdtr.cbGdt;
 		utcb->gdtr.base   = pCtx->gdtr.pGdt;
-
-		TODO: For all segments, tr
-
-		cur_state->ldtr.sel   = pCtx->ldtr.Sel;
-		cur_state->ldtr.limit = pCtx->ldtr.u32Limit;
-		cur_state->ldtr.base  = pCtx->ldtr.u64Base;
-		cur_state->ldtr.ar    = pCtx->ldtr.Attr.u;
 		*/
 
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
@@ -296,6 +300,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		GENODE_READ_SELREG(fs);
 		GENODE_READ_SELREG(gs);
 
+		if (GENODE_READ_SELREG_REQUIRED(ldtr)) {
+			GENODE_READ_SELREG(ldtr);
+			CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_LDTR);
+		}
 		if (GENODE_READ_SELREG_REQUIRED(tr)) {
 			GENODE_READ_SELREG(tr);
 			CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_TR);
