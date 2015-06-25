@@ -235,6 +235,9 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 			cur_state->tr.access = pCtx->tr.Attr.u;
 		}
 
+		cur_state->gdtr.limit = pCtx->gdtr.cbGdt;
+		cur_state->gdtr.base  = pCtx->gdtr.pGdt;
+
 		cur_state->Ia32_efer = CPUMGetGuestEFER(pVCpu);
 
 		/*
@@ -245,8 +248,6 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		utcb->idtr.limit  = pCtx->idtr.cbIdt;
 		utcb->idtr.base   = pCtx->idtr.pIdt;
-		utcb->gdtr.limit  = pCtx->gdtr.cbGdt;
-		utcb->gdtr.base   = pCtx->gdtr.pGdt;
 		*/
 
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
@@ -277,6 +278,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		pCtx->r15 = cur_state->Regs.R15;
 
 		pCtx->rflags.u = cur_state->Rflags;
+
+		if (pCtx->gdtr.cbGdt != cur_state->gdtr.limit ||
+		    pCtx->gdtr.pGdt  != cur_state->gdtr.base)
+			CPUMSetGuestGDTR(pVCpu, cur_state->gdtr.base, cur_state->gdtr.limit);
 
 		if (pCtx->cr0 != cur_state->Cr0)
 			CPUMSetGuestCR0(pVCpu, cur_state->Cr0);
