@@ -203,6 +203,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		GENODE_WRITE_SELREG(cs);
 		GENODE_WRITE_SELREG(ss);
+		GENODE_WRITE_SELREG(ds);
+		GENODE_WRITE_SELREG(es);
+		GENODE_WRITE_SELREG(fs);
+		GENODE_WRITE_SELREG(gs);
 
 		cur_state->Ia32_efer = CPUMGetGuestEFER(pVCpu);
 
@@ -271,6 +275,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		GENODE_READ_SELREG(cs);
 		GENODE_READ_SELREG(ss);
+		GENODE_READ_SELREG(ds);
+		GENODE_READ_SELREG(es);
+		GENODE_READ_SELREG(fs);
+		GENODE_READ_SELREG(gs);
 
 		CPUMSetGuestEFER(pVCpu, cur_state->Ia32_efer);
 
