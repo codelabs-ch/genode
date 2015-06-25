@@ -152,11 +152,17 @@ inline void inject_irq(PVMCPU pVCpu)
 		case 49: // Kbd
 			asm volatile ("vmcall" : : "a" (3) : "memory");
 			break;
+		case 60: // Ptr
+			asm volatile ("vmcall" : : "a" (6) : "memory");
+			break;
 		case 63: // Ata
 			asm volatile ("vmcall" : : "a" (4) : "memory");
 			break;
 		case 239: // LOC (Local timer interrupts)
 			asm volatile ("vmcall" : : "a" (5) : "memory");
+			break;
+		case 246: // Work
+			asm volatile ("vmcall" : : "a" (7) : "memory");
 			break;
 		default:
 			PDBG("No event to inject interrupt %u", u8Vector);
