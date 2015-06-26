@@ -369,7 +369,7 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 {
 	switch(uOperation)
 	{
- 		case VMMR0_DO_GVMM_CREATE_VM:
+		case VMMR0_DO_GVMM_CREATE_VM:
 			genode_VMMR0_DO_GVMM_CREATE_VM(pReqHdr);
 			return VINF_SUCCESS;
 
@@ -388,11 +388,10 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POLL:
-			/* called by 'vmR3HaltGlobal1Halt' */
-			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POLL");
-			return VINF_SUCCESS;
-
+		case VMMR0_DO_GVMM_DESTROY_VM:
+		case VMMR0_DO_VMMR0_TERM:
 		case VMMR0_DO_HM_SETUP_VM:
+		case VMMR0_DO_HM_ENABLE:
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POKE:
