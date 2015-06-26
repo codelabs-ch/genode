@@ -35,6 +35,7 @@ struct Subject_state
 	Genode::uint64_t Exit_reason;
 	Genode::uint64_t Exit_qualification;
 	Genode::uint64_t Guest_phys_addr;
+	Genode::uint64_t Intr_state;
 	Genode::uint64_t Interrupt_info;
 	Genode::uint64_t Instruction_len;
 	Genode::uint64_t Rip;

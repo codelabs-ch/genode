@@ -35,7 +35,11 @@
 /* Libc include */
 #include <pthread.h>
 
-enum { VMCS_SEG_UNUSABLE = 0x10000 };
+enum {
+	VMCS_SEG_UNUSABLE  = 0x10000,
+	BLOCKING_BY_STI    = 1U << 0,
+	BLOCKING_BY_MOV_SS = 1U << 1,
+};
 
 #define GENODE_READ_SELREG_REQUIRED(REG) \
     (pCtx->REG.Sel != cur_state->REG.sel) || \
@@ -331,6 +335,15 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		}
 
 		CPUMSetGuestEFER(pVCpu, cur_state->Ia32_efer);
+
+		VMCPU_FF_CLEAR(pVCpu, VMCPU_FF_TO_R3);
+
+		if (cur_state->Intr_state != 0) {
+			Assert(cur_state->Intr_state == BLOCKING_BY_STI ||
+			       cur_state->Intr_state == BLOCKING_BY_MOV_SS);
+			EMSetInhibitInterruptsPC(pVCpu, pCtx->rip);
+		} else
+			VMCPU_FF_CLEAR(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS);
 
 #ifdef VBOX_WITH_REM
 		/* XXX see VMM/VMMR0/HMVMXR0.cpp - not necessary every time ! XXX */
