@@ -220,6 +220,7 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		cur_state->Cr0 |= 1 << 5;
 		cur_state->Regs.Cr2 = pCtx->cr2;
 		cur_state->Cr3  = pCtx->cr3;
+		cur_state->Shadow_cr4 = pCtx->cr4;
 		cur_state->Cr4  = pCtx->cr4;
 		cur_state->Cr4  |= 1 << 13;
 
@@ -312,8 +313,13 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		}
 		if (pCtx->cr2 != cur_state->Regs.Cr2)
 			CPUMSetGuestCR2(pVCpu, cur_state->Regs.Cr2);
-		if (pCtx->cr4 != cur_state->Cr4)
-			CPUMSetGuestCR4(pVCpu, cur_state->Cr4);
+		{
+			uint32_t val;
+			val  = (cur_state->Shadow_cr4 & pVCpu->hm.s.vmx.u32CR4Mask);
+			val |= (cur_state->Cr4 & ~pVCpu->hm.s.vmx.u32CR4Mask);
+			if (pCtx->cr4 != val)
+				CPUMSetGuestCR4(pVCpu, val);
+		}
 
 		/*
 		 * Guest CR3 must be handled after saving CR0 & CR4.
