@@ -303,8 +303,13 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		    pCtx->gdtr.pGdt  != cur_state->gdtr.base)
 			CPUMSetGuestGDTR(pVCpu, cur_state->gdtr.base, cur_state->gdtr.limit);
 
-		if (pCtx->cr0 != cur_state->Cr0)
-			CPUMSetGuestCR0(pVCpu, cur_state->Cr0);
+		{
+			uint32_t val;
+			val  = (cur_state->Shadow_cr0 & pVCpu->hm.s.vmx.u32CR0Mask);
+			val |= (cur_state->Cr0 & ~pVCpu->hm.s.vmx.u32CR0Mask);
+			if (pCtx->cr0 != val)
+				CPUMSetGuestCR0(pVCpu, val);
+		}
 		if (pCtx->cr2 != cur_state->Regs.Cr2)
 			CPUMSetGuestCR2(pVCpu, cur_state->Regs.Cr2);
 		if (pCtx->cr4 != cur_state->Cr4)
