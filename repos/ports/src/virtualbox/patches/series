@@ -13,6 +13,7 @@ vbox_main.patch
 network.patch
 vga_fb.patch
 vga_vbva.patch
+vga_refreshalways.patch
 vmdk.patch
 vmmdev.patch
 avoid_yield.patch
