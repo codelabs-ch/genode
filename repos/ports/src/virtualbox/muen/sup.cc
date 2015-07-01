@@ -102,6 +102,107 @@ inline bool continue_hw_accelerated(PVMR0 pVMR0, VMCPUID idCpu)
 }
 
 
+/**
+ * Returns the value of the register identified by reg.
+ * The register mapping is specified by Intel SDM Vol. 3C, table 27-3.
+ */
+inline uint64_t get_reg_val (struct Subject_state *cur_state, unsigned reg)
+{
+	switch (reg) {
+		case 0:
+			return cur_state->Regs.Rax;
+			break;
+		case 1:
+			return cur_state->Regs.Rcx;
+			break;
+		case 2:
+			return cur_state->Regs.Rdx;
+			break;
+		case 3:
+			return cur_state->Regs.Rbx;
+			break;
+		case 4:
+			return cur_state->Rsp;
+			break;
+		case 5:
+			return cur_state->Regs.Rbp;
+			break;
+		case 6:
+			return cur_state->Regs.Rsi;
+			break;
+		case 7:
+			return cur_state->Regs.Rdi;
+			break;
+		default:
+			PDBG("Invalid register %u", reg);
+			return 0;
+	}
+}
+
+
+/**
+ * Sets the control register identified by cr to the given value.
+ */
+inline bool set_cr(struct Subject_state *cur_state, unsigned cr, uint64_t value)
+{
+	bool res = false;
+	switch (cr) {
+		case 0:
+			cur_state->Shadow_cr0 = value;
+			cur_state->Cr0  = value | 1 << 5;
+			cur_state->Cr0 &= ~(1 << 30 | 1 << 29);
+			res = true;
+			break;
+		case 2:
+			cur_state->Regs.Cr2 = value;
+			res = true;
+			break;
+		case 3:
+			cur_state->Cr3 = value;
+			res = true;
+			break;
+		case 4:
+			cur_state->Shadow_cr4 = value;
+			cur_state->Cr4  = value | 1 << 13;
+			res = true;
+			break;
+		default:
+			PDBG("Invalid control register %u", cr);
+			res = false;
+	}
+
+	return res;
+}
+
+
+/**
+ * Handle control register access by evaluating the VM-exit qualification
+ * according to Intel SDM Vol. 3C, table 27-3.
+ */
+inline bool handle_cr(struct Subject_state *cur_state)
+{
+	uint64_t qual = cur_state->Exit_qualification;
+	unsigned cr  =  qual & 0xf;
+	unsigned acc = (qual & 0x30) >> 4;
+	unsigned reg = (qual & 0xf00) >> 8;
+	bool res;
+
+	switch (acc) {
+		case 0: // MOV to CR
+			res = set_cr(cur_state, cr, get_reg_val(cur_state, reg));
+			break;
+		default:
+			PDBG("Invalid control register access");
+			return false;
+	}
+
+	if (res)
+		cur_state->Rip += cur_state->Instruction_len;
+
+	return res;
+}
+
+
 inline bool has_pending_irq(PVMCPU pVCpu)
 {
 	if (!TRPMHasTrap(pVCpu) &&
@@ -263,7 +364,19 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
 
+resume:
 		vm_handler.run_vm();
+
+		switch(cur_state->Exit_reason)
+		{
+			case 0x1c: // Control-register access
+				if (handle_cr(cur_state)) {
+					goto resume;
+				}
+				break;
+			default:
+				break;
+		}
 
 		CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_GLOBAL_TLB_FLUSH);
 
