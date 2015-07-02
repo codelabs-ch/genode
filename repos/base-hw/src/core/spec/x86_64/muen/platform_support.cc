@@ -30,3 +30,5 @@ Native_region * Platform::_core_only_mmio_regions(unsigned const i)
 }
 
 void Platform::setup_irq_mode(unsigned, unsigned, unsigned) { }
+
+void Platform::_init_additional() { }
