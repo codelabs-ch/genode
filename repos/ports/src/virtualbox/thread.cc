@@ -71,6 +71,7 @@ static Genode::Cpu_connection * cpu_connection(RTTHREADTYPE type) {
 	con[type - 1] = new (env()->heap()) Cpu_connection(data, prio);
 	con[type - 1]->ref_account(env()->cpu_session_cap());
 	env()->cpu_session()->transfer_quota(con[type - 1]->cap(), quota);
+	PDBG("Transfer quota '%s': percent %u, scaled %zu", data, quotas[type - 1], quota);
 	return con[type - 1];
 }
 
@@ -96,8 +97,11 @@ static int create_thread(pthread_t *thread, const pthread_attr_t *attr,
 	if (!Genode::strcmp(rtthread->szName, "EMT"))
 		Assert(rtthread->enmType == RTTHREADTYPE_EMULATION);
 
+	Genode::Cpu_session * cpu_session = cpu_connection(rtthread->enmType);
+
+	PDBG("Thread '%s', enmType %d, super_period_us %lu, us %lu", rtthread->szName, rtthread->enmType,
+			cpu_session->quota().super_period_us, cpu_session->quota().us);
 	if (rtthread->enmType == RTTHREADTYPE_EMULATION) {
-		Genode::Cpu_session * cpu_session = cpu_connection(RTTHREADTYPE_EMULATION);
 		Genode::Affinity::Location location;
 		if (create_emt_vcpu(thread, stack_size, attr, start_routine, arg,
 		                    cpu_session, location))
@@ -110,8 +114,7 @@ static int create_thread(pthread_t *thread, const pthread_attr_t *attr,
 
 	pthread_t thread_obj = new (Genode::env()->heap())
 	                           pthread(attr ? *attr : 0, start_routine,
-	                           arg, stack_size, rtthread->szName,
-	                           cpu_connection(rtthread->enmType));
+	                           arg, stack_size, rtthread->szName, cpu_session);
 
 	if (!thread_obj)
 		return EAGAIN;

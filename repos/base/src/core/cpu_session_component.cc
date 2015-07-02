@@ -75,6 +75,7 @@ Thread_capability Cpu_session_component::create_thread(size_t weight,
 		throw Out_of_metadata();
 	}
 
+	PDBG("Thread '%s' with prio %d, weight %zu, quota %zu", name.string(), _priority, weight, _weight_to_quota(weight));
 	_thread_list.insert(thread);
 
 	_trace_sources.insert(thread->trace_source());
