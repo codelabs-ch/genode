@@ -17,6 +17,8 @@
 #include <base/printf.h>
 #include <base/semaphore.h>
 #include <os/attached_io_mem_dataspace.h>
+#include <rom_session/connection.h>
+//#include <muen/sinfo.h>
 
 /* VirtualBox includes */
 #include "HMInternal.h" /* enable access to hm.s.* */
@@ -562,13 +564,39 @@ bool create_emt_vcpu(pthread_t * thread, size_t stack_size,
 }
 
 
+uint64_t genode_cpu_hz()
+{
+	static uint64_t cpu_freq = 0;
+	struct Sinfo {
+		uint64_t foo;
+		uint64_t bar;
+		uint64_t tsc_khz;
+	};
+
+	if (!cpu_freq) {
+		try {
+			using namespace Genode;
+
+			Rom_connection sinfo_rom("subject_info_page");
+
+			Sinfo * const sinfo = env()->rm_session()->attach(sinfo_rom.dataspace());
+
+			cpu_freq = sinfo->tsc_khz * 1000;
+
+		} catch (...) {
+			PERR("unable to read CPU frequency from subject info page.");
+			Genode::Lock lock;
+			lock.lock();
+		}
+	}
+
+	return cpu_freq;
+}
+
+
 /**
  * Dummies and unimplemented stuff.
  */
-
-uint64_t genode_cpu_hz() {
-	return 1000000000ULL; /* XXX fixed 1GHz return value */
-}
 
 
 bool Vmm_memory::revoke_from_vm(Mem_region *r)
