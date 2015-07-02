@@ -19,6 +19,8 @@
 
 using namespace Genode;
 
+void Platform::_init_additional() { };
+
 Native_region * Platform::_core_only_mmio_regions(unsigned const i)
 {
 	static Native_region _regions[] =
