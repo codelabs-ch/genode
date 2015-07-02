@@ -19,6 +19,7 @@
 #include <board.h>
 #include <platform.h>
 #include <sinfo.h>
+#include <board.h>
 
 using namespace Genode;
 
@@ -114,4 +115,10 @@ Native_region * Platform::_ram_regions(unsigned const i)
 }
 
 
-void Platform::_init_additional() { }
+void Platform::_init_additional()
+{
+	/* export subject info page as ROM module */
+	_rom_fs.insert(new (core_mem_alloc())
+	               Rom_module((addr_t)Board::SINFO_BASE_ADDR,
+	               Board::SINFO_SIZE, "subject_info_page"));
+}
