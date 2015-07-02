@@ -126,6 +126,7 @@ append_if [have_spec muen] config {
 append config {
 	<start name="virtualbox" priority="-2">
 		<resource name="RAM" quantum="448M"/>
+		<resource name="CPU" quantum="80"/>
 		<config vbox_file="test.vbox" vm_name="TestVM">
 			<libc stdout="/dev/log" stderr="/dev/log" rtc="/dev/rtc">
 				<vfs>
