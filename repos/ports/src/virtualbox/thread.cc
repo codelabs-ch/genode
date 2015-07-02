@@ -56,7 +56,7 @@ static Genode::Cpu_connection * cpu_connection(RTTHREADTYPE type) {
 	Genode::snprintf(data, 16, "vbox %u", type);
 
 	con[type - 1] = new (env()->heap()) Cpu_connection(data, prio);
-
+	con[type - 1]->ref_account(env()->cpu_session_cap());
 	return con[type - 1];
 }
 
