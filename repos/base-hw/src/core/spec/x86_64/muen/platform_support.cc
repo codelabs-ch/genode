@@ -14,6 +14,7 @@
 
 /* core includes */
 #include <platform.h>
+#include <board.h>
 
 using namespace Genode;
 
@@ -31,4 +32,10 @@ Native_region * Platform::_core_only_mmio_regions(unsigned const i)
 
 void Platform::setup_irq_mode(unsigned, unsigned, unsigned) { }
 
-void Platform::_init_additional() { }
+void Platform::_init_additional()
+{
+	/* export subject info page as ROM module */
+	_rom_fs.insert(new (core_mem_alloc())
+	               Rom_module((addr_t)Board::SINFO_BASE_ADDR,
+	               Board::SINFO_SIZE, "subject_info_page"));
+}
