@@ -316,14 +316,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		cur_state->Sysenter_eip = pCtx->SysEnter.eip;
 		cur_state->Sysenter_esp = pCtx->SysEnter.esp;
 
-		cur_state->Shadow_cr0 = pCtx->cr0;
-		cur_state->Cr0  = pCtx->cr0;
-		cur_state->Cr0 |= 1 << 5;
-		cur_state->Regs.Cr2 = pCtx->cr2;
-		cur_state->Cr3  = pCtx->cr3;
-		cur_state->Shadow_cr4 = pCtx->cr4;
-		cur_state->Cr4  = pCtx->cr4;
-		cur_state->Cr4  |= 1 << 13;
+		set_cr(cur_state, 0, pCtx->cr0);
+		set_cr(cur_state, 2, pCtx->cr2);
+		set_cr(cur_state, 3, pCtx->cr3);
+		set_cr(cur_state, 4, pCtx->cr4);
 
 		GENODE_WRITE_SELREG(cs);
 		GENODE_WRITE_SELREG(ss);
