@@ -1,0 +1,12 @@
+diff -Naur a/src/app/virtualbox/src/VBox/Devices/Storage/DevATA.cpp b/src/app/virtualbox/src/VBox/Devices/Storage/DevATA.cpp
+--- a/src/app/virtualbox/src/VBox/Devices/Storage/DevATA.cpp	2015-07-01 12:10:27.763830134 +0200
++++ b/src/app/virtualbox/src/VBox/Devices/Storage/DevATA.cpp	2015-07-01 14:59:21.328841009 +0200
+@@ -5655,7 +5655,7 @@
+             *pu32 = ataBMDMACmdReadB(pCtl, Port) | (ataBMDMAStatusReadB(pCtl, Port) << 16);
+             break;
+         default:
+-            AssertMsgFailed(("%s: Unsupported read from port %x size=%d\n", __FUNCTION__, Port, cb));
++            //AssertMsgFailed(("%s: Unsupported read from port %x size=%d\n", __FUNCTION__, Port, cb));
+             PDMCritSectLeave(&pCtl->lock);
+             return VERR_IOM_IOPORT_UNUSED;
+     }
