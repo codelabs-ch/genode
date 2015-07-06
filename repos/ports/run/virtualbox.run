@@ -1,7 +1,7 @@
 set use_net 0
 set use_ps2 [have_spec ps2]
 set use_usb 0
-set use_serial 0
+set use_serial 1
 
 set build_components {
 	core init virtualbox
