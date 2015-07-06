@@ -248,8 +248,8 @@ namespace {
 				}
 			}
 		default:
-			PERR("fcntl(): command %d arg %ld not supported - pipe",
-			     cmd, arg);
+//			PERR("fcntl(): command %d arg %ld not supported - pipe",
+//			     cmd, arg);
 			return -1;
 		}
 	}
