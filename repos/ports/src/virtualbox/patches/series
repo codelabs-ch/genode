@@ -25,3 +25,4 @@ tm_smp.patch
 posix.patch
 hostservice.patch
 vbox_dd.patch
+ata-ommit-assert.patch
