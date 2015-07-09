@@ -508,17 +508,17 @@ void Thread::_print_activity_when_awaits_ipc()
 
 void print_thread_quota_stats()
 {
-	Genode::printf("--- spent quota stats ---\n");
+	static unsigned counter = 0;
+	if (counter == 0)
+		Genode::printf("counter, pd_label, label, spent, used\n");
+
+	if (counter % 2 == 0) {
 	for (Thread * t = thread_list()->first(); t; t = t->Thread_list::Element::next())
 	{
-		Genode::printf("%llu   [%s] %s\n", t->spent(), t->pd_label(), t->label());
+		Genode::printf("%u, %s, %s, %llu, %llu \n", counter / 2, t->pd_label(), t->label(), t->spent(), t->used());
 	}
-	Genode::printf("\n");
-	Genode::printf("--- used quota stats ---\n");
-	for (Thread * t = thread_list()->first(); t; t = t->Thread_list::Element::next())
-	{
-		Genode::printf("%llu   [%s] %s\n", t->used(), t->pd_label(), t->label());
 	}
+	counter++;
 }
 
 
