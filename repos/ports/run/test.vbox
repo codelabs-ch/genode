@@ -45,8 +45,8 @@
       <BIOS>
         <ACPI enabled="true"/>
         <IOAPIC enabled="false"/>
-        <Logo fadeIn="true" fadeOut="true" displayTime="0"/>
-        <BootMenu mode="MessageAndMenu"/>
+        <Logo fadeIn="false" fadeOut="false" displayTime="0"/>
+        <BootMenu mode="Disabled"/>
         <TimeOffset value="0"/>
         <PXEDebug enabled="false"/>
       </BIOS>
