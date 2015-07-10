@@ -70,11 +70,11 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 
 		case VMMR0_DO_GVMM_SCHED_POLL:
 			/* called by 'vmR3HaltGlobal1Halt' */
-			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POLL");
+//			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POLL");
 			return VINF_SUCCESS;
 
 		case VMMR0_DO_GVMM_SCHED_POKE:
-			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POKE");
+//			PDBG("SUPR3CallVMMR0Ex: VMMR0_DO_GVMM_SCHED_POKE");
 			return VINF_SUCCESS;
 
 		default:
@@ -106,8 +106,8 @@ uint64_t genode_cpu_hz() {
 
 bool Vmm_memory::revoke_from_vm(Mem_region *r)
 {
-	PWRN("%s unimplemented", __func__);
-	return false;
+//	PWRN("%s unimplemented", __func__);
+	return true;
 }
 
 
