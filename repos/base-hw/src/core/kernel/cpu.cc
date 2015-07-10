@@ -91,7 +91,7 @@ void Cpu_job::_interrupt(unsigned const cpu_id)
 
 		/* is the interrupt a cpu-local one */
 		if (!_cpu->interrupt(irq_id)) {
-			PDBG("Handling IRQ %u", irq_id);
+
 			/* it needs to be a user interrupt */
 			User_irq * irq = User_irq::object(irq_id);
 			if (irq) irq->occurred();
