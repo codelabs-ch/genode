@@ -499,7 +499,8 @@ resume:
 		REMFlushTBs(pVM);
 #endif
 
-		return continue_hw_accelerated(pVMR0, idCpu) ? VINF_SUCCESS : VINF_EM_RAW_EMULATE_INSTR;
+		return VINF_EM_RAW_EMULATE_INSTR;
+//		return continue_hw_accelerated(pVMR0, idCpu) ? VINF_SUCCESS : VINF_EM_RAW_EMULATE_INSTR;
 	}
 
 	return VERR_INTERNAL_ERROR;
