@@ -53,7 +53,7 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 		static unsigned counter;
 		static Region_info regions[] = {
 			/* RAM phys 0x0 */
-			{ 0x800000000, 0x10000000 },
+			{ 0x800000000, 0xd000000 }, // 0x10000000 },
 			/* pcbios phys 0xe1000 */
 			{ 0x810000000, 0x1000 },
 			/* pcbios phys 0xf0000*/
