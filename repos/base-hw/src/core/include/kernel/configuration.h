@@ -25,10 +25,10 @@ namespace Kernel
 	constexpr unsigned cpu_priorities = 4;
 
 	/* super period in CPU scheduling and the overall allocatable CPU time */
-	constexpr time_t cpu_quota_us = 1000000;
+	constexpr time_t cpu_quota_us = 100000;
 
 	/* time slice for the round-robin mode and the idle in CPU scheduling */
-	constexpr time_t cpu_fill_us = 10000;
+	constexpr time_t cpu_fill_us = 1000;
 }
 
 #endif /* _CORE__INCLUDE__KERNEL__CONFIGURATION_H_ */
