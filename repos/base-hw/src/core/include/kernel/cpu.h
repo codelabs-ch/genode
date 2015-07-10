@@ -174,6 +174,8 @@ class Kernel::Cpu_job : public Cpu_share
 		unsigned long long spent() const { return _spent; }
 		unsigned long long used() const { return _used; }
 
+		void reset_stats() { _spent = 0; _used = 0; }
+
 		/**
 		 * Return which job currently uses our CPU-share
 		 */

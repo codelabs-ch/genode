@@ -516,6 +516,7 @@ void print_thread_quota_stats()
 	for (Thread * t = thread_list()->first(); t; t = t->Thread_list::Element::next())
 	{
 		Genode::printf("%u, %s, %s, %llu, %llu \n", counter / 2, t->pd_label(), t->label(), t->spent(), t->used());
+		t->reset_stats();
 	}
 	}
 	counter++;
