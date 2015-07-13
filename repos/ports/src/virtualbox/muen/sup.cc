@@ -253,11 +253,17 @@ inline void inject_irq(PVMCPU pVCpu)
 	AssertRC(rc);
 
 	switch (u8Vector) {
+		case 8: // Non-remapped RTC
+			asm volatile ("vmcall" : : "a" (8) : "memory");
+			break;
 		case 48: // Timer
 			asm volatile ("vmcall" : : "a" (2) : "memory");
 			break;
 		case 49: // Kbd
 			asm volatile ("vmcall" : : "a" (3) : "memory");
+			break;
+		case 56: // RTC
+			asm volatile ("vmcall" : : "a" (9) : "memory");
 			break;
 		case 60: // Ptr
 			asm volatile ("vmcall" : : "a" (6) : "memory");
