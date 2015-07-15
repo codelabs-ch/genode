@@ -38,16 +38,16 @@ static Genode::Cpu_connection * cpu_connection(RTTHREADTYPE type) {
 	static Lock lock;
 	static unsigned quotas[RTTHREADTYPE_END - 1] =
 	{  1, // RTTHREADTYPE_INFREQUENT_POLLER
-	  15, // RTTHREADTYPE_MAIN_HEAVY_WORKER
-	  20, // RTTHREADTYPE_EMULATION
-	  20, // RTTHREADTYPE_DEFAULT
-	   5, // RTTHREADTYPE_GUI
-	  30, // RTTHREADTYPE_MAIN_WORKER
+	   1, // RTTHREADTYPE_MAIN_HEAVY_WORKER
+	   1, // RTTHREADTYPE_EMULATION
+	   1, // RTTHREADTYPE_DEFAULT
+	   1, // RTTHREADTYPE_GUI
+	   1, // RTTHREADTYPE_MAIN_WORKER
 	   1, // RTTHREADTYPE_VRDP_IO
 	   1, // RTTHREADTYPE_DEBUGGER
 	   1, // RTTHREADTYPE_MSG_PUMP
 	   1, // RTTHREADTYPE_IO
-	   5, // RTTHREADTYPE_TIMER
+	   1, // RTTHREADTYPE_TIMER
 	 };
 
 	Assert(type && type < RTTHREADTYPE_END);
@@ -68,7 +68,7 @@ static Genode::Cpu_connection * cpu_connection(RTTHREADTYPE type) {
 
 	Genode::snprintf(data, 16, "vbox %u", type);
 
-	const size_t quota = Cpu_session::quota_lim_upscale(quotas[type - 1], 100);
+	const size_t quota = Cpu_session::quota_lim_upscale(quotas[type - 1], 11);
 
 	con[type - 1] = new (env()->heap()) Cpu_connection(data, prio);
 	con[type - 1]->ref_account(env()->cpu_session_cap());
