@@ -46,7 +46,7 @@ set config {
 	</default-route>
 	<start name="timer" priority="-1">
 		<resource name="RAM" quantum="1M"/>
-		<resource name="CPU" quantum="10"/>
+		<resource name="CPU" quantum="1"/>
 		<provides><service name="Timer"/></provides>
 	</start>}
 
@@ -71,7 +71,7 @@ append_if [expr $use_usb] config {
 append_if [have_spec framebuffer] config {
 	<start name="fb_drv" priority="-1">
 		<resource name="RAM" quantum="4M"/>
-		<resource name="CPU" quantum="4"/>
+		<resource name="CPU" quantum="1"/>
 		<provides><service name="Framebuffer"/></provides>
 	</start>}
 
@@ -87,7 +87,7 @@ append_if [have_spec sdl] config {
 append_if [have_spec x86] config {
 	<start name="rtc_drv" priority="-1">
 		<resource name="RAM" quantum="1M"/>
-		<resource name="CPU" quantum="5"/>
+		<resource name="CPU" quantum="1"/>
 		<provides>
 			<service name="Rtc"/>
 		</provides>
@@ -112,7 +112,7 @@ append_if [expr $use_serial] config {
 append config {
 	<start name="virtualbox" priority="-2">
 		<resource name="RAM" quantum="448M"/>
-		<resource name="CPU" quantum="80"/>
+		<resource name="CPU" quantum="96"/>
 		<config vbox_file="test.vbox" vm_name="TestVM">
 			<libc stdout="/dev/log" stderr="/dev/log" rtc="/dev/rtc">
 				<vfs>
