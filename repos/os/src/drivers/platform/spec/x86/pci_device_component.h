@@ -51,6 +51,7 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 			PCI_IRQ_PIN   = 0x3d,
 
 			CAP_MSI_64    = 0x80,
+			CAP_MASK      = 0x100,
 			MSI_ENABLED   = 0x1
 		};
 
@@ -101,6 +102,13 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 			return 0;
 		}
 
+
+		bool is_ahci()
+		{
+			return _device_config.bus_number() == 0 &&
+				_device_config.device_number() == 0x1f &&
+				_device_config.function_number() == 2;
+		}
 
 		/**
 		 * Disable MSI if already enabled.
@@ -211,12 +219,20 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 
 			_disable_bus_master_dma();
 
-			if (!_irq_session.msi())
+			if (!_irq_session.msi() && !is_ahci()) {
 				return;
+			}
 
 			Genode::addr_t msi_address = _irq_session.msi_address();
 			Genode::uint32_t msi_value = _irq_session.msi_data();
 			Genode::uint16_t msi_cap   = _msi_cap();
+
+			if (is_ahci())
+			{
+				PDBG("Setting MSI address and data for AHCI device");
+				msi_address = 0xfee00418;
+				msi_value   = 0x0;
+			}
 
 			Genode::uint16_t msi = _device_config.read(&_config_access,
 			                                           msi_cap + 2,
@@ -349,28 +365,32 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 				return _irq_session.cap();
 
 			bool msi_64 = false;
+			bool msi_mask = false;
 			Genode::uint16_t msi_cap   = _msi_cap();
 			if (msi_cap) {
 				Genode::uint16_t msi = _device_config.read(&_config_access,
 				                                           msi_cap + 2,
 				                                           Platform::Device::ACCESS_16BIT);
 				msi_64 = msi & CAP_MSI_64;
+				msi_mask = msi & CAP_MASK;
 			}
 
 			if (_irq_session.msi())
-				PINF("%x:%x.%x uses MSI %s, vector 0x%lx, address 0x%lx",
+				PINF("%x:%x.%x uses MSI %s, vector 0x%lx, address 0x%lx%s",
 				     _device_config.bus_number(),
 				     _device_config.device_number(),
 				     _device_config.function_number(),
 				     msi_64 ? "64bit" : "32bit",
-				     _irq_session.msi_data(), _irq_session.msi_address());
+				     _irq_session.msi_data(), _irq_session.msi_address(),
+					 msi_mask ? ", maskable" : ", no-maskable");
 			else
-				PINF("%x:%x.%x uses IRQ, vector 0x%x%s",
+				PINF("%x:%x.%x uses IRQ, vector 0x%x%s%s",
 				     _device_config.bus_number(),
 				     _device_config.device_number(),
 				     _device_config.function_number(), _irq_line,
 				     msi_cap ? (msi_64 ? ", MSI 64bit capable" :
-				                         ", MSI 32bit capable") : "");
+				                         ", MSI 32bit capable") : "",
+					 msi_mask ? ", maskable" : ", no-maskable");
 
 			return _irq_session.cap();
 		}
