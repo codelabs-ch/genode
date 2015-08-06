@@ -6,7 +6,7 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.innotek.de/VirtualBox-settings" version="1.14-linux">
-  <Machine uuid="{410f6221-6237-4833-b02c-a54000b7b190}" name="Tinycore" OSType="WindowsXP" snapshotFolder="Snapshots" lastStateChange="2014-10-30T13:26:17Z">
+  <Machine uuid="{410f6221-6237-4833-b02c-a54000b7b190}" name="Tinycore" OSType="Linux26" snapshotFolder="Snapshots" lastStateChange="2014-10-30T13:26:17Z">
     <MediaRegistry>
       <HardDisks/>
       <DVDImages>
@@ -22,7 +22,7 @@
       <CPU count="1" hotplug="false">
         <HardwareVirtEx enabled="true"/>
         <HardwareVirtExNestedPaging enabled="true"/>
-        <HardwareVirtExVPID enabled="false"/>
+        <HardwareVirtExVPID enabled="true"/>
         <HardwareVirtExUX enabled="false"/>
         <PAE enabled="false"/>
         <LongMode enabled="false"/>
@@ -39,13 +39,13 @@
         <Order position="3" device="HardDisk"/>
         <Order position="4" device="None"/>
       </Boot>
-      <Display VRAMSize="20" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
+      <Display VRAMSize="12" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
       <VideoCapture enabled="false" screens="18446744073709551615" horzRes="1024" vertRes="768" rate="512" fps="25"/>
-      <RemoteDisplay enabled="false" authType="Null"/>
+      <RemoteDisplay enabled="false" authType="Null" authTimeout="5000"/>
       <BIOS>
         <ACPI enabled="true"/>
         <IOAPIC enabled="false"/>
-        <Logo fadeIn="false" fadeOut="false" displayTime="0"/>
+        <Logo fadeIn="true" fadeOut="true" displayTime="0"/>
         <BootMenu mode="MessageAndMenu"/>
         <TimeOffset value="0"/>
         <PXEDebug enabled="false"/>
