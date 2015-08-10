@@ -391,6 +391,7 @@ resume:
 			case 0x20: // WRMSR
 			case 0x28: // PAUSE
 			case 0x30: // EPT violation
+			case 0x34: // VMX preemption timer
 			case 0x36: // WBINVD
 				break;
 			default:
