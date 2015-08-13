@@ -250,8 +250,8 @@
 
 	.global _vt_vm_entry
 	_vt_vm_entry:
-	mov $1, %rax
 	sti
+	mov $1, %rax
 	vmcall
 
 	/************************************************
