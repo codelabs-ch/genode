@@ -43,7 +43,7 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 	PGMPHYSHANDLERTYPE   enmType;
 	size_t				 region_size;
 
-	addr_t _phys_base()
+	addr_t _phys_base(size_t size)
 	{
 		struct Region_info
 		{
@@ -80,6 +80,11 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 			PERR("Region size is zero!!!");
 			return 0;
 		}
+
+		if (size > cur_region.size)
+			PERR("size: %zu, cur_region.size: %zu", size, cur_region.size);
+		Assert(size <= cur_region.size);
+
 		return cur_region.base;
 	}
 
@@ -88,7 +93,7 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 	Mem_region(Ram_session &ram, size_t size, PPDMDEVINS pDevIns,
 	           unsigned iRegion)
 	:
-		Attached_io_mem_dataspace(_phys_base(), size),
+		Attached_io_mem_dataspace(_phys_base(size), size),
 		pDevIns(pDevIns),
 		iRegion(iRegion),
 		vm_phys(0), pfnHandlerR3(0), pvUserR3(0),
