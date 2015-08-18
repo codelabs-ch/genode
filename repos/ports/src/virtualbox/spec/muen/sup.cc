@@ -224,9 +224,10 @@ inline void inject_irq(PVMCPU pVCpu)
 		case 8: // Non-remapped RTC
 			asm volatile ("vmcall" : : "a" (8) : "memory");
 			break;
-		case 48: // Timer
+		case 32: // Timer
 			asm volatile ("vmcall" : : "a" (2) : "memory");
 			break;
+#if 0
 		case 49: // Kbd
 			asm volatile ("vmcall" : : "a" (3) : "memory");
 			break;
@@ -239,12 +240,15 @@ inline void inject_irq(PVMCPU pVCpu)
 		case 63: // Ata
 			asm volatile ("vmcall" : : "a" (4) : "memory");
 			break;
-		case 239: // LOC (Local timer interrupts)
+#endif
+		case 160: // LOC (Local timer interrupts)
 			asm volatile ("vmcall" : : "a" (5) : "memory");
 			break;
+#if 0
 		case 246: // Work
 			asm volatile ("vmcall" : : "a" (7) : "memory");
 			break;
+#endif
 		default:
 			PDBG("No event to inject interrupt %u", u8Vector);
 	}
