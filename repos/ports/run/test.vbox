@@ -44,7 +44,7 @@
       <RemoteDisplay enabled="false" authType="Null" authTimeout="5000"/>
       <BIOS>
         <ACPI enabled="true"/>
-        <IOAPIC enabled="false"/>
+        <IOAPIC enabled="true"/>
         <Logo fadeIn="true" fadeOut="true" displayTime="0"/>
         <BootMenu mode="MessageAndMenu"/>
         <TimeOffset value="0"/>
