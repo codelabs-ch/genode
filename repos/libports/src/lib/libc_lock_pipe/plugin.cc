@@ -237,6 +237,8 @@ namespace {
 				return O_WRONLY;
 			else
 				return O_RDONLY;
+		case F_SETFL:
+			return 0;
 		case F_SETFD:
 			{
 				const long supported_flags = FD_CLOEXEC;
