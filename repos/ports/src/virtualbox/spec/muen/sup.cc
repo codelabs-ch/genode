@@ -268,6 +268,10 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		PVMCPU   pVCpu = &pVM->aCpus[idCpu];
 		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
 
+		Assert(!(VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS)));
+		if (cur_state->Intr_state & 3)
+			cur_state->Intr_state &= ~3U;
+
 		if (has_pending_irq(pVCpu))
 			inject_irq(pVCpu);
 
