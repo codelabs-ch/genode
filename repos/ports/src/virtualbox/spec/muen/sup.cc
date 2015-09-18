@@ -38,9 +38,11 @@
 #include <pthread.h>
 
 enum {
-	VMCS_SEG_UNUSABLE  = 0x10000,
-	BLOCKING_BY_STI    = 1U << 0,
-	BLOCKING_BY_MOV_SS = 1U << 1,
+	VMCS_SEG_UNUSABLE    = 0x10000,
+	IRQ_INJ_VALID_MASK   = 0x80000000UL,
+	INTERRUPT_STATE_NONE = 0U,
+	BLOCKING_BY_STI      = 1U << 0,
+	BLOCKING_BY_MOV_SS   = 1U << 1,
 };
 
 #define GENODE_READ_SELREG_REQUIRED(REG) \
@@ -173,19 +175,26 @@ inline bool handle_cr(struct Subject_state *cur_state)
 }
 
 
-inline bool has_pending_irq(PVMCPU pVCpu)
+inline bool check_to_request_irq_window(PVMCPU pVCpu, struct Subject_state *cur_state)
 {
 	if (!TRPMHasTrap(pVCpu) &&
 		!VMCPU_FF_IS_PENDING(pVCpu, (VMCPU_FF_INTERRUPT_APIC |
-		                             VMCPU_FF_INTERRUPT_PIC)))
+		                             VMCPU_FF_INTERRUPT_PIC))) {
+		cur_state->Cpu_exec_ctrls &= ~4U;
 		return false;
+	}
 
+	cur_state->Cpu_exec_ctrls |= 4;
 	return true;
 }
 
 
-inline void inject_irq(PVMCPU pVCpu)
+inline void inject_irq(PVMCPU pVCpu, struct Subject_state *cur_state)
 {
+	Assert(cur_state->Intr_state == INTERRUPT_STATE_NONE);
+	Assert(cur_state->Rflags & X86_EFL_IF);
+	Assert(!VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS));
+
 	int rc;
 
 	if (!TRPMHasTrap(pVCpu)) {
@@ -220,38 +229,8 @@ inline void inject_irq(PVMCPU pVCpu)
 	rc = TRPMResetTrap(pVCpu);
 	AssertRC(rc);
 
-	switch (u8Vector) {
-		case 8: // Non-remapped RTC
-			asm volatile ("vmcall" : : "a" (8) : "memory");
-			break;
-		case 32: // Timer
-			asm volatile ("vmcall" : : "a" (2) : "memory");
-			break;
-#if 0
-		case 49: // Kbd
-			asm volatile ("vmcall" : : "a" (3) : "memory");
-			break;
-		case 56: // RTC
-			asm volatile ("vmcall" : : "a" (9) : "memory");
-			break;
-		case 60: // Ptr
-			asm volatile ("vmcall" : : "a" (6) : "memory");
-			break;
-		case 63: // Ata
-			asm volatile ("vmcall" : : "a" (4) : "memory");
-			break;
-#endif
-		case 160: // LOC (Local timer interrupts)
-			asm volatile ("vmcall" : : "a" (5) : "memory");
-			break;
-#if 0
-		case 246: // Work
-			asm volatile ("vmcall" : : "a" (7) : "memory");
-			break;
-#endif
-		default:
-			PDBG("No event to inject interrupt %u", u8Vector);
-	}
+	/* Inject vector */
+	cur_state->Interrupt_info_entry = IRQ_INJ_VALID_MASK + u8Vector;
 }
 
 
@@ -272,8 +251,7 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		if (cur_state->Intr_state & 3)
 			cur_state->Intr_state &= ~3U;
 
-		if (has_pending_irq(pVCpu))
-			inject_irq(pVCpu);
+		check_to_request_irq_window(pVCpu, cur_state);
 
 		cur_state->Rip = pCtx->rip;
 		cur_state->Rsp = pCtx->rsp;
@@ -347,13 +325,27 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 resume:
 		vm_handler.run_vm();
 
-		switch(cur_state->Exit_reason)
+		const uint64_t reason = cur_state->Exit_reason;
+		cur_state->Exit_reason = 0xff;
+
+		switch(reason)
 		{
 			case 0x1c: // Control-register access
 				if (handle_cr(cur_state)) {
 					goto resume;
 				}
 				break;
+
+			case 0x07: // Interrupt Window Exiting
+				Assert(cur_state->Intr_state == INTERRUPT_STATE_NONE);
+				Assert(cur_state->Rflags & X86_EFL_IF);
+				Assert(!VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS));
+				Assert(!(cur_state->Interrupt_info_entry & IRQ_INJ_VALID_MASK));
+
+				inject_irq(pVCpu, cur_state);
+				check_to_request_irq_window(pVCpu, cur_state);
+				goto resume;
+
 			case 0x01: // External interrupt
 			case 0x02: // Triple fault
 			case 0x09: // Task switch
@@ -370,15 +362,27 @@ resume:
 			case 0x34: // VMX preemption timer
 			case 0x36: // WBINVD
 				break;
+			case 0xff: // VM session was interrupted before hwaccl.
+				if (cur_state->Interrupt_info_entry & IRQ_INJ_VALID_MASK) {
+					Assert(cur_state->Rflags & X86_EFL_IF);
+					Assert(cur_state->Intr_state == INTERRUPT_STATE_NONE);
+					goto resume;
+				}
+
+				if (check_to_request_irq_window(pVCpu, cur_state))
+					goto resume;
+				break;
 			default:
-				PDBG("VM exited with exit reason %llx", cur_state->Exit_reason);
+				PDBG("VM exited with exit reason %llx", reason);
 				PDBG("-> qualification %llx", cur_state->Exit_qualification);
-				PDBG("-> interrupt info %llx", cur_state->Interrupt_info);
+				PDBG("-> interrupt info %llx", cur_state->Interrupt_info_exit);
 				PDBG("-> RIP: %lx, RSP: %lx", cur_state->Rip, cur_state->Rsp);
 				PDBG("-> RFLAGS: %lx, EFER: %lx", cur_state->Rflags, cur_state->Ia32_efer);
 				PDBG("-> CR0: %lx, CR2: %lx, CR3: %lx, CR4: %lx", cur_state->Cr0, cur_state->Regs.Cr2, cur_state->Cr3, cur_state->Cr4);
 				PDBG("-> CS: %lx, SS: %lx", cur_state->cs.sel, cur_state->ss.sel);
 		}
+
+		Assert(!(cur_state->Interrupt_info_entry & IRQ_INJ_VALID_MASK));
 
 		CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_GLOBAL_TLB_FLUSH);
 
