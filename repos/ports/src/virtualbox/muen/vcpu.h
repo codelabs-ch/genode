@@ -1,6 +1,8 @@
 
 #include <base/stdint.h>
 
+#include <iprt/x86.h>
+
 struct Cpu_registers
 {
 	Genode::uint64_t Cr2;
@@ -62,6 +64,8 @@ struct Subject_state
 	Segment ldtr;
 	Segment gdtr;
 	Segment idtr;
+	char _unused[496];
+	X86FXSTATE Fpu_state __attribute__((aligned(0x10)));
 } __attribute__((packed));
 
 
