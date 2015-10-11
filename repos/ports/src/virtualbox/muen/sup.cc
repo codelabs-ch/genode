@@ -352,6 +352,8 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		utcb->dr7  = pCtx->dr[7];
 		*/
 
+		Genode::memcpy(&cur_state->Fpu_state, &pCtx->fpu, sizeof(X86FXSTATE));
+
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
 
 resume:
@@ -498,7 +500,13 @@ resume:
 
 		CPUMSetGuestEFER(pVCpu, cur_state->Ia32_efer);
 
+		Genode::memcpy(&pCtx->fpu, &cur_state->Fpu_state, sizeof(X86FXSTATE));
+
 		VMCPU_FF_CLEAR(pVCpu, VMCPU_FF_TO_R3);
+
+		/* tell rem compiler that FPU register changed XXX optimizations ? */
+		CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_FPU_REM); /* redundant ? XXX */
+		pVCpu->cpum.s.fUseFlags |=  (CPUM_USED_FPU | CPUM_USED_FPU_SINCE_REM); /* redundant ? XXX */
 
 		if (cur_state->Intr_state != 0) {
 			Assert(cur_state->Intr_state == BLOCKING_BY_STI ||
