@@ -59,7 +59,14 @@ enum {
 	pCtx->REG.fFlags   = CPUMSELREG_FLAGS_VALID; \
 	pCtx->REG.u32Limit = cur_state->REG.limit; \
 	pCtx->REG.u64Base  = cur_state->REG.base; \
-	pCtx->REG.Attr.u   = cur_state->REG.access
+	pCtx->REG.Attr.u   = cur_state->REG.access;
+
+#define GENODE_ASSERT_SELREG(REG) \
+	Assert(pCtx->REG.Sel     == cur_state->REG.sel); \
+	Assert(pCtx->REG.ValidSel == cur_state->REG.sel); \
+	Assert(pCtx->REG.fFlags   == CPUMSELREG_FLAGS_VALID); \
+	Assert(pCtx->REG.u32Limit == cur_state->REG.limit); \
+	Assert(pCtx->REG.u64Base  == cur_state->REG.base);
 
 #define GENODE_WRITE_SELREG(REG) \
 	Assert(pCtx->REG.fFlags & CPUMSELREG_FLAGS_VALID); \
@@ -196,6 +203,78 @@ inline bool check_to_request_irq_window(PVMCPU pVCpu, struct Subject_state *cur_
 
 	cur_state->Cpu_exec_ctrls |= 4;
 	return true;
+}
+
+
+inline void check_vm_state(PVMCPU pVCpu, struct Subject_state *cur_state)
+{
+	PCPUMCTX pCtx = CPUMQueryGuestCtxPtr(pVCpu);
+
+	Assert(cur_state->Rip == pCtx->rip);
+	Assert(cur_state->Rsp == pCtx->rsp);
+	Assert(cur_state->Regs.Rax == pCtx->rax);
+	Assert(cur_state->Regs.Rbx == pCtx->rbx);
+	Assert(cur_state->Regs.Rcx == pCtx->rcx);
+	Assert(cur_state->Regs.Rdx == pCtx->rdx);
+	Assert(cur_state->Regs.Rbp == pCtx->rbp);
+	Assert(cur_state->Regs.Rsi == pCtx->rsi);
+	Assert(cur_state->Regs.Rdi == pCtx->rdi);
+	Assert(cur_state->Regs.R08 == pCtx->r8);
+	Assert(cur_state->Regs.R09 == pCtx->r9);
+	Assert(cur_state->Regs.R10 == pCtx->r10);
+	Assert(cur_state->Regs.R11 == pCtx->r11);
+	Assert(cur_state->Regs.R12 == pCtx->r12);
+	Assert(cur_state->Regs.R13 == pCtx->r13);
+	Assert(cur_state->Regs.R14 == pCtx->r14);
+	Assert(cur_state->Regs.R15 == pCtx->r15);
+
+	Assert(cur_state->Rflags == pCtx->rflags.u);
+
+	Assert(cur_state->Sysenter_cs  == pCtx->SysEnter.cs);
+	Assert(cur_state->Sysenter_eip == pCtx->SysEnter.eip);
+	Assert(cur_state->Sysenter_esp == pCtx->SysEnter.esp);
+
+	{
+		uint32_t val;
+		val  = (cur_state->Shadow_cr0 & pVCpu->hm.s.vmx.u32CR0Mask);
+		val |= (cur_state->Cr0 & ~pVCpu->hm.s.vmx.u32CR0Mask);
+		Assert(pCtx->cr0 == val);
+	}
+	Assert(cur_state->Regs.Cr2 == pCtx->cr2);
+	Assert(cur_state->Cr3 == pCtx->cr3);
+	{
+		uint32_t val;
+		val  = (cur_state->Shadow_cr4 & pVCpu->hm.s.vmx.u32CR4Mask);
+		val |= (cur_state->Cr4 & ~pVCpu->hm.s.vmx.u32CR4Mask);
+		Assert(pCtx->cr4 == val);
+	}
+
+	GENODE_ASSERT_SELREG(cs);
+	GENODE_ASSERT_SELREG(ss);
+	GENODE_ASSERT_SELREG(ds);
+	GENODE_ASSERT_SELREG(es);
+	GENODE_ASSERT_SELREG(fs);
+	GENODE_ASSERT_SELREG(gs);
+
+	Assert(cur_state->ldtr.sel    == pCtx->ldtr.Sel);
+	Assert(cur_state->ldtr.limit  == pCtx->ldtr.u32Limit);
+	Assert(cur_state->ldtr.base   == pCtx->ldtr.u64Base);
+	if(cur_state->ldtr.sel != 0)
+		Assert(cur_state->ldtr.access == pCtx->ldtr.Attr.u);
+	Assert(pCtx->tr.Attr.u & X86_SEL_TYPE_SYS_TSS_BUSY_MASK);
+	{
+		Assert(cur_state->tr.sel    == pCtx->tr.Sel);
+		Assert(cur_state->tr.limit  == pCtx->tr.u32Limit);
+		Assert(cur_state->tr.base   == pCtx->tr.u64Base);
+		Assert(cur_state->tr.access == pCtx->tr.Attr.u);
+	}
+
+	Assert(cur_state->idtr.limit == pCtx->idtr.cbIdt);
+	Assert(cur_state->idtr.base  == pCtx->idtr.pIdt);
+	Assert(cur_state->gdtr.limit == pCtx->gdtr.cbGdt);
+	Assert(cur_state->gdtr.base  == pCtx->gdtr.pGdt);
+
+	Assert(cur_state->Ia32_efer == CPUMGetGuestEFER(pVCpu));
 }
 
 
