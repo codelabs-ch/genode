@@ -596,7 +596,7 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 				PVMCPU   pVCpu = &pVM->aCpus[idCpu];
 				pVM->hm.s.svm.fSupported = false;
 				pVM->hm.s.vmx.fSupported = true;
-				pVM->hm.s.vmx.fAllowUnrestricted = false;
+				pVM->hm.s.vmx.fAllowUnrestricted = true;
 				pVCpu->hm.s.vmx.u32CR0Mask = 0x60000020;
 				pVCpu->hm.s.vmx.u32CR4Mask = 0x2000;
 				return VINF_SUCCESS;
