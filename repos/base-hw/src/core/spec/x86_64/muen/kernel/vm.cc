@@ -35,8 +35,8 @@ Kernel::Vm::~Vm() { }
 
 void Kernel::Vm::exception(unsigned const cpu_id)
 {
+	pause();
 	if (_state->trapno == 200) {
-		pause();
 		_context->submit(1);
 		return;
 	}
@@ -46,6 +46,7 @@ void Kernel::Vm::exception(unsigned const cpu_id)
 	{
 		pic()->irq_occurred(_state->trapno);
 		_interrupt(cpu_id);
+		_context->submit(1);
 		return;
 	}
 	PWRN("VM: triggered unknown exception %lu with error code %lu",
