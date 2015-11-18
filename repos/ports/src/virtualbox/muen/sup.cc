@@ -625,6 +625,10 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 			genode_VMMR0_DO_GVMM_CREATE_VM(pReqHdr);
 			return VINF_SUCCESS;
 
+		case VMMR0_DO_GVMM_REGISTER_VMCPU:
+			genode_VMMR0_DO_GVMM_REGISTER_VMCPU(pVMR0, idCpu);
+			return VINF_SUCCESS;
+
 		case VMMR0_DO_GVMM_SCHED_HALT:
 			r0_halt_sem()->down();
 			return VINF_SUCCESS;
