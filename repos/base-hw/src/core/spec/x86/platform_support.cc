@@ -25,7 +25,7 @@ Native_region * Platform::_ram_regions(unsigned const i)
 {
 	static Native_region _regions[] =
 	{
-		{ 2*1024*1024, 1024*1024*(128+254+120) }
+		{ 2*1024*1024, 1024*1024*(1458) }
 	};
 	return i < sizeof(_regions)/sizeof(_regions[0]) ? &_regions[i] : 0;
 }

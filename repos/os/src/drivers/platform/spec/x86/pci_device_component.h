@@ -128,6 +128,9 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 			                                      _device_config.device_number(),
 			                                      _device_config.function_number(),
 			                                      pin);
+			if (_irq_line == 11 && _device_config.device_number() == 0x1f && _device_config.function_number() == 2)
+				irq_r = 0x13;
+
 			if (irq_r) {
 				PINF("%x:%x.%x rewriting IRQ: %u -> %u",
 				     _device_config.bus_number(),

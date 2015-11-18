@@ -1,5 +1,4 @@
 # Tested for nova. 
-assert_spec nova
  
 if {[have_include "power_on/qemu"]} {
 	puts "\nRun script does not support Qemu.\n"
@@ -12,8 +11,6 @@ set overlay_image "overlay_${flavor}.vdi"
 
 set build_components {
 	server/input_merger
-	drivers/nic
-	drivers/audio
 	server/nitpicker
 	app/vbox_pointer
 	server/nit_fb
@@ -22,8 +19,6 @@ set build_components {
 
 set boot_modules {
 	input_merger
-	nic_drv
-	audio_drv
 	nitpicker
 	vbox_pointer
 	nit_fb
@@ -34,6 +29,7 @@ set config_of_app {
 
 	<start name="input_merger">
 		<resource name="RAM" quantum="1M" />
+		<resource name="CPU" quantum="1"/>
 		<provides>
 			<service name="Input" />
 		</provides>
@@ -62,33 +58,15 @@ append config_of_app {
 		Note: to get network access in the VM, the virtual network adapter
 		      needs to be enabled in the .vbox file (disabled by default)
 	-->
-	<start name="nic_drv" priority="-1">
-		<resource name="RAM" quantum="8M" />
-		<provides>
-			<service name="Nic" />
-		</provides>
-	</start>
 
 	<!--
 		Note: to use audio in the VM, the virtual audio adapter
 		needs to be enabled in the .vbox file (disabled by default).
 		(Recording is configured to use the external mic.)
 	-->
-	<start name="audio_drv">
-		<resource name="RAM" quantum="8M"/>
-		<provides>
-			<service name="Audio_out"/>
-			<service name="Audio_in"/>
-		</provides>
-		<config recording="yes">
-			<mixer field="outputs.master" value="255"/>
-			<mixer field="record.adc-0:1_source" value="sel2"/>
-			<mixer field="record.adc-0:1" value="255"/>
-		</config>
-	</start>
-
 	<start name="report_rom">
 		<resource name="RAM" quantum="1M"/>
+		<resource name="CPU" quantum="1"/>
 		<provides> <service name="Report"/> <service name="ROM"/> </provides>
 		<config>
 			<rom>
@@ -101,7 +79,8 @@ append config_of_app {
 	</start>
 
 	<start name="nitpicker" priority="-1">
-		<resource name="RAM" quantum="2M"/>
+		<resource name="RAM" quantum="4M"/>
+		<resource name="CPU" quantum="1"/>
 		<provides><service name="Nitpicker"/></provides>
 		<route>
 			<service name="Framebuffer"> <child name="fb_drv" /> </service>
@@ -130,6 +109,7 @@ append config_of_app {
 
 	<start name="vbox_pointer" priority="-1">
 		<resource name="RAM" quantum="1M"/>
+		<resource name="CPU" quantum="1"/>
 		<route>
 			<service name="Nitpicker"> <child name="nitpicker"/>  </service>
 			<service name="ROM">       <child name="report_rom"/> </service>
@@ -139,6 +119,7 @@ append config_of_app {
 
 	<start name="nit_fb" priority="-1">
 		<resource name="RAM" quantum="8M" />
+		<resource name="CPU" quantum="2"/>
 		<provides>
 			<service name="Framebuffer" />
 			<service name="Input" />
@@ -147,7 +128,8 @@ append config_of_app {
 
 	<start name="vbox" priority="-2">
 		<binary name="virtualbox" />
-		<resource name="RAM" quantum="1280M"/>}
+		<resource name="RAM" quantum="1280M"/>
+		<resource name="CPU" quantum="60"/>}
 append config_of_app "
 			<config vbox_file=\"${vbox_file}\" vm_name=\"${flavor}\">"
 append config_of_app {
