@@ -31,7 +31,7 @@
         <HardwareVirtExLargePages enabled="false"/>
         <HardwareVirtForce enabled="false"/>
       </CPU>
-      <Memory RAMSize="1024" PageFusion="false"/>
+      <Memory RAMSize="768" PageFusion="false"/>
       <HID Pointing="PS2Mouse" Keyboard="PS2Keyboard"/>
       <HPET enabled="false"/>
       <Chipset type="PIIX3"/>
@@ -41,7 +41,7 @@
         <Order position="3" device="HardDisk"/>
         <Order position="4" device="None"/>
       </Boot>
-      <Display VRAMSize="128" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
+      <Display VRAMSize="20" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
       <VideoCapture enabled="false" screens="18446744073709551615" horzRes="1024" vertRes="768" rate="512" fps="25"/>
       <RemoteDisplay enabled="false" authType="Null"/>
       <BIOS>
