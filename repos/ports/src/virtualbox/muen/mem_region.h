@@ -65,7 +65,7 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 			/* VMMDev */
 			{ 0x850000000, 0x4000 },
 			/* vga */
-			{ 0x860000000, 0x1400000 },
+			{ 0x860000000, 0x8000000 },
 			/* vga phys 0xc0000 */
 			{ 0x870000000, 0x9000 },
 			/* acpi phys e0000 */
