@@ -82,7 +82,7 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 		}
 
 		if (size > cur_region.size)
-			PERR("size: %zu, cur_region.size: %zu", size, cur_region.size);
+			PERR("size: 0x%zx, cur_region.size: %zx", size, cur_region.size);
 		Assert(size <= cur_region.size);
 
 		return cur_region.base;
