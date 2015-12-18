@@ -41,7 +41,7 @@
         <Order position="3" device="HardDisk"/>
         <Order position="4" device="None"/>
       </Boot>
-      <Display VRAMSize="20" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
+      <Display VRAMSize="128" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
       <VideoCapture enabled="false" screens="18446744073709551615" horzRes="1024" vertRes="768" rate="512" fps="25"/>
       <RemoteDisplay enabled="false" authType="Null"/>
       <BIOS>
