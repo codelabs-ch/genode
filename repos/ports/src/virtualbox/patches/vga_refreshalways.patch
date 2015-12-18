@@ -1,13 +1,21 @@
 diff -Naur a/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp b/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp
---- a/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp	2015-06-30 09:25:28.053438096 +0200
-+++ b/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp	2015-06-30 09:33:24.769990343 +0200
-@@ -4563,7 +4563,8 @@
+--- a/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp	2015-12-18 14:04:24.497512072 +0100
++++ b/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp	2015-12-18 11:47:00.543756266 +0100
+@@ -4563,8 +4563,15 @@
          pThis->fRemappedVGA = false;
      }
  
 -    rc = vga_update_display(pThis, false, false, true,
-+    pThis->graphic_mode = -1; /* force full update */
-+    rc = vga_update_display(pThis, true, false, true,
-             pThis->pDrv, &pThis->graphic_mode);
+-            pThis->pDrv, &pThis->graphic_mode);
++	static uint32_t vga_update_counter = 0;
++
++	if (vga_update_counter++ % 120 == 0)
++	{
++		pThis->graphic_mode = -1; /* force full update */ rc =
++			vga_update_display(pThis, true, false, true, pThis->pDrv,
++					&pThis->graphic_mode);
++	}
++
      PDMCritSectLeave(&pThis->CritSect);
      return rc;
+ }
