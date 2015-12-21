@@ -153,11 +153,19 @@ Genode::Irq_session_capability Platform::Device_component::irq(Genode::uint8_t i
 	                                                   (!_session->msi_usage() || !_msi_cap()) ? ~0UL : _config_space);
 	_ep->manage(_irq_session);
 
-	if (_irq_session->msi()) {
+	if (_irq_session->msi() || is_ahci()) {
 
 		Genode::addr_t msi_address = _irq_session->msi_address();
 		Genode::uint32_t msi_value = _irq_session->msi_data();
 		Genode::uint16_t msi_cap   = _msi_cap();
+
+		if (is_ahci())
+		{
+			msi_address = 0xfee00570;
+			msi_value   = 0x0;
+			PDBG("Setting MSI address and data for AHCI device (IRT index 0x%x)",
+				 (unsigned)(((msi_address >> 5) & 0x7ff) + ((msi_address & 0x4) << 13)));
+		}
 
 		Genode::uint16_t msi = _device_config.read(&_config_access,
 		                                           msi_cap + 2,
@@ -189,28 +197,32 @@ Genode::Irq_session_capability Platform::Device_component::irq(Genode::uint8_t i
 	}
 
 	bool msi_64 = false;
+	bool msi_mask = false;
 	Genode::uint16_t msi_cap   = _msi_cap();
 	if (msi_cap) {
 		Genode::uint16_t msi = _device_config.read(&_config_access,
 		                                           msi_cap + 2,
 		                                           Platform::Device::ACCESS_16BIT);
 		msi_64 = msi & CAP_MSI_64;
+		msi_mask = msi & CAP_MASK;
 	}
 
 	if (_irq_session->msi())
-		PINF("%x:%x.%x uses MSI %s, vector 0x%lx, address 0x%lx",
+		PINF("%x:%x.%x uses MSI %s, vector 0x%lx, address 0x%lx%s",
 		     _device_config.bus_number(),
 		     _device_config.device_number(),
 		     _device_config.function_number(),
 		     msi_64 ? "64bit" : "32bit",
-		     _irq_session->msi_data(), _irq_session->msi_address());
+			_irq_session->msi_data(), _irq_session->msi_address(),
+			 msi_mask ? ", maskable" : ", no-maskable");
 	else
-		PINF("%x:%x.%x uses IRQ, vector 0x%x%s",
+		PINF("%x:%x.%x uses IRQ, vector 0x%x%s%s",
 		     _device_config.bus_number(),
 		     _device_config.device_number(),
 		     _device_config.function_number(), _irq_line,
 		     msi_cap ? (msi_64 ? ", MSI 64bit capable" :
-		                         ", MSI 32bit capable") : "");
+								 ", MSI 32bit capable") : "",
+								 msi_mask ? ", maskable" : ", no-maskable");
 
 	return _irq_session->cap();
 }

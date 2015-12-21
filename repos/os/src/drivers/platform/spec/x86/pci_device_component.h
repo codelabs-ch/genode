@@ -62,6 +62,7 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 			PCI_IRQ_PIN   = 0x3d,
 
 			CAP_MSI_64    = 0x80,
+			CAP_MASK      = 0x100,
 			MSI_ENABLED   = 0x1
 		};
 
@@ -114,6 +115,13 @@ class Platform::Device_component : public Genode::Rpc_object<Platform::Device>,
 			return 0;
 		}
 
+
+		bool is_ahci()
+		{
+			return _device_config.bus_number() == 0 &&
+				_device_config.device_number() == 0x1f &&
+				_device_config.function_number() == 2;
+		}
 
 		/**
 		 * Disable MSI if already enabled.
