@@ -18,6 +18,7 @@
 #include <base/semaphore.h>
 #include <os/attached_io_mem_dataspace.h>
 #include <rom_session/connection.h>
+#include <timer_session/connection.h>
 //#include <muen/sinfo.h>
 
 /* VirtualBox includes */
@@ -705,6 +706,27 @@ uint64_t genode_cpu_hz()
 	}
 
 	return cpu_freq;
+}
+
+
+void genode_update_tsc(void (*update_func)(void), unsigned long update_us)
+{
+	using namespace Genode;
+
+	Timer::Connection timer;
+	Signal_context    sig_ctx;
+	Signal_receiver   sig_rec;
+	Signal_context_capability sig_cap = sig_rec.manage(&sig_ctx);
+
+	timer.sigh(sig_cap);
+	timer.trigger_once(update_us);
+
+	for (;;) {
+		Signal s = sig_rec.wait_for_signal();
+		update_func();
+
+		timer.trigger_once(update_us);
+	}
 }
 
 
