@@ -336,6 +336,8 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
 		int rc;
 
+		Assert(!(pVCpu->cpum.s.fUseFlags & (CPUM_USED_FPU | CPUM_USED_FPU_SINCE_REM | CPUM_SYNC_FPU_STATE)));
+
 		if (!VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS) && (cur_state->Intr_state & 3))
 			cur_state->Intr_state &= ~3U;
 
