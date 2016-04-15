@@ -589,8 +589,14 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 	switch(uOperation)
 	{
 		case VMMR0_DO_GVMM_CREATE_VM:
-			genode_VMMR0_DO_GVMM_CREATE_VM(pReqHdr);
-			return VINF_SUCCESS;
+			{
+				GVMMCREATEVMREQ &req = reinterpret_cast<GVMMCREATEVMREQ &>(*pReqHdr);
+				AssertMsgReturn(req.cCpus == 1,
+								("VM with multiple CPUs not supported\n"),
+								VERR_INVALID_PARAMETER);
+				genode_VMMR0_DO_GVMM_CREATE_VM(pReqHdr);
+				return VINF_SUCCESS;
+			}
 
 		case VMMR0_DO_GVMM_SCHED_HALT:
 			r0_halt_sem()->down();
