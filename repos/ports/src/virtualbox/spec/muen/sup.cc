@@ -272,7 +272,6 @@ inline void inject_irq(PVMCPU pVCpu, struct Subject_state *cur_state)
 {
 	Assert(cur_state->Intr_state == INTERRUPT_STATE_NONE);
 	Assert(cur_state->Rflags & X86_EFL_IF);
-	Assert(!VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS));
 
 	int rc;
 
@@ -325,9 +324,9 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 		VM     * pVM   = reinterpret_cast<VM *>(pVMR0);
 		PVMCPU   pVCpu = &pVM->aCpus[idCpu];
 		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
+		int rc;
 
-		Assert(!(VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS)));
-		if (cur_state->Intr_state & 3)
+		if (!VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS) && (cur_state->Intr_state & 3))
 			cur_state->Intr_state &= ~3U;
 
 		check_to_request_irq_window(pVCpu, cur_state);
@@ -418,7 +417,6 @@ resume:
 			case 0x07: // Interrupt Window Exiting
 				Assert(cur_state->Intr_state == INTERRUPT_STATE_NONE);
 				Assert(cur_state->Rflags & X86_EFL_IF);
-				Assert(!VMCPU_FF_IS_SET(pVCpu, VMCPU_FF_INHIBIT_INTERRUPTS));
 				Assert(!(cur_state->Interrupt_info_entry & IRQ_INJ_VALID_MASK));
 
 				inject_irq(pVCpu, cur_state);
@@ -426,8 +424,13 @@ resume:
 				goto resume;
 
 			case 0x01: // External interrupt
-			case 0x02: // Triple fault
 			case 0x09: // Task switch
+			case 0x34: // VMX preemption timer
+				rc = VINF_SUCCESS;
+				break;
+			case 0x02: // Triple fault
+				rc = VINF_EM_TRIPLE_FAULT;
+				break;
 			case 0x0a: // CPUID
 			case 0x0c: // HLT
 			case 0x0e: // INVLPG
@@ -438,8 +441,8 @@ resume:
 			case 0x20: // WRMSR
 			case 0x28: // PAUSE
 			case 0x30: // EPT violation
-			case 0x34: // VMX preemption timer
 			case 0x36: // WBINVD
+				rc = VINF_EM_RAW_EMULATE_INSTR;
 				break;
 			case 0xff: // VM session was interrupted before hwaccl.
 				if (cur_state->Interrupt_info_entry & IRQ_INJ_VALID_MASK) {
@@ -459,6 +462,7 @@ resume:
 				PDBG("-> RFLAGS: %lx, EFER: %lx", cur_state->Rflags, cur_state->Ia32_efer);
 				PDBG("-> CR0: %lx, CR2: %lx, CR3: %lx, CR4: %lx", cur_state->Cr0, cur_state->Regs.Cr2, cur_state->Cr3, cur_state->Cr4);
 				PDBG("-> CS: %lx, SS: %lx", cur_state->cs.sel, cur_state->ss.sel);
+				rc = VINF_EM_RAW_EMULATE_INSTR;
 		}
 
 		Assert(!(cur_state->Interrupt_info_entry & IRQ_INJ_VALID_MASK));
@@ -559,7 +563,7 @@ resume:
 		REMFlushTBs(pVM);
 #endif
 
-		return VINF_EM_RAW_EMULATE_INSTR;
+		return rc;
 	}
 
 	return VERR_INTERNAL_ERROR;
