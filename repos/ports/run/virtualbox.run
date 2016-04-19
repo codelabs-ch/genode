@@ -18,7 +18,6 @@ lappend_if [expr $use_ps2]    build_components drivers/input
 lappend_if [expr $use_usb]    build_components drivers/usb
 lappend_if [expr $use_serial] build_components server/log_terminal
 lappend_if [have_spec x86]    build_components drivers/rtc
-
 lappend_if [expr $use_net]    build_components drivers/nic
 
 append_platform_drv_build_components
@@ -68,9 +67,15 @@ append_if [expr $use_ps2] config {
 append_if [expr $use_usb] config {
 	<start name="usb_drv" priority="-1">
 		<resource name="RAM" quantum="7M"/>
-		<provides><service name="Input"/></provides>
+		<provides>
+			<service name="Input"/>
+			<service name="Usb"/>
+		</provides>
 		<config uhci="yes" ehci="yes" xhci="yes">
 			<hid/>
+			<raw>
+				<report devices="yes"/>
+			</raw>
 		</config>
 	</start>}
 
@@ -123,7 +128,9 @@ append_if [have_spec muen] config {
 			<service name="ROM"/>
 		</provides>
 		<config>
-			<rom/>
+			<rom>
+				<policy label="virtualbox -> usb_devices" report="foobar"/>
+			</rom>
 		</config>
 	</start>}
 
@@ -145,6 +152,13 @@ append config {
 				</vfs>
 			</libc>
 		</config>
+		<route>
+			<service name="Report"><child name="report_rom" /></service>
+			<service name="ROM">
+				<if-arg key="label" value="usb_devices"/> <child name="report_rom"/>
+			</service>
+			<any-service> <parent/> <any-child /> </any-service>
+		</route>
 	</start>
 </config>
 }
