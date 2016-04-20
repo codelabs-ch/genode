@@ -1,5 +1,4 @@
 # Tested for nova. 
-assert_spec nova
  
 if {[have_include "power_on/qemu"]} {
 	puts "\nRun script does not support Qemu.\n"
@@ -34,6 +33,7 @@ set config_of_app {
 
 	<start name="input_merger">
 		<resource name="RAM" quantum="1M" />
+		<resource name="CPU" quantum="1"/>
 		<provides>
 			<service name="Input" />
 		</provides>
@@ -64,6 +64,7 @@ append config_of_app {
 	-->
 	<start name="nic_drv" priority="-1">
 		<resource name="RAM" quantum="8M" />
+		<resource name="CPU" quantum="1"/>
 		<provides>
 			<service name="Nic" />
 		</provides>
@@ -76,6 +77,7 @@ append config_of_app {
 	-->
 	<start name="audio_drv" priority="-1">
 		<resource name="RAM" quantum="9M"/>
+		<resource name="CPU" quantum="5"/>
 		<provides>
 			<service name="Audio_out"/>
 			<service name="Audio_in"/>
@@ -89,6 +91,7 @@ append config_of_app {
 
 	<start name="report_rom">
 		<resource name="RAM" quantum="1M"/>
+		<resource name="CPU" quantum="1"/>
 		<provides> <service name="Report"/> <service name="ROM"/> </provides>
 		<config>
 			<rom>
@@ -103,7 +106,8 @@ append config_of_app {
 	</start>
 
 	<start name="nitpicker" priority="-1">
-		<resource name="RAM" quantum="2M"/>
+		<resource name="RAM" quantum="4M"/>
+		<resource name="CPU" quantum="1"/>
 		<provides><service name="Nitpicker"/></provides>
 		<route>
 			<service name="Framebuffer"> <child name="fb_drv" /> </service>
@@ -126,6 +130,7 @@ append config_of_app {
 
 	<start name="vbox_pointer" priority="-1">
 		<resource name="RAM" quantum="1M"/>
+		<resource name="CPU" quantum="1"/>
 		<config>
 			<policy label="nit_fb" rom="shape"/>
 		</config>
@@ -138,6 +143,7 @@ append config_of_app {
 
 	<start name="nit_fb" priority="-1">
 		<resource name="RAM" quantum="8M" />
+		<resource name="CPU" quantum="2"/>
 		<provides>
 			<service name="Framebuffer" />
 			<service name="Input" />
@@ -146,7 +152,8 @@ append config_of_app {
 
 	<start name="vbox" priority="-2">
 		<binary name="virtualbox" />
-		<resource name="RAM" quantum="1280M"/>}
+		<resource name="RAM" quantum="1280M"/>
+		<resource name="CPU" quantum="54"/>}
 append config_of_app "
 			<config ld_verbose=\"yes\" vbox_file=\"${vbox_file}\" vm_name=\"${flavor}\">"
 append config_of_app {
