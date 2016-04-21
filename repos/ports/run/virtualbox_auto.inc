@@ -162,6 +162,7 @@ append_if [expr $use_usb] config {
 	<device vendor_id="0x046d" product_id="0xc00e"/> <!-- logitech mouse -->
 	<device vendor_id="0x0984" product_id="0x0066"/> <!-- lenovo DVDRW -->
 	<device vendor_id="0x174c" product_id="0x5106"/> <!-- delock SATA -->
+	<device vendor_id="0x0781" product_id="0x5580"/> <!-- sandisk extreme stick -->
 </config>
 				</inline>
 			</content>
