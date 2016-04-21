@@ -38,13 +38,13 @@ class Genode::Timer
 
 		uint64_t _tics_per_ms;
 
-		struct Subject_timer
+		struct Subject_timed_event
 		{
-			uint64_t value;
-			uint8_t  vector;
+			uint64_t tsc_trigger;
+			uint8_t  event_nr :5;
 		} __attribute__((packed));
 
-		struct Subject_timer * _timer_page;
+		struct Subject_timed_event * _event_page;
 
 		inline uint64_t rdtsc()
 		{
@@ -60,15 +60,15 @@ class Genode::Timer
 		Timer() : _tics_per_ms(Sinfo::get_tsc_khz())
 		{
 			struct Sinfo::Memregion_info region;
-			if (!Sinfo::get_memregion_info("timer", &region)) {
-				PERR("muen-timer: Unable to retrieve time memory region");
+			if (!Sinfo::get_memregion_info("timed_event", &region)) {
+				PERR("muen-timer: Unable to retrieve timed event region");
 				throw Invalid_region();
 			}
 
-			_timer_page = (Subject_timer *)region.address;
-			_timer_page->vector = Board::TIMER_VECTOR_KERNEL;
-			PINF("muen-timer: page @0x%llx, frequency %llu kHz, vector %u",
-			     region.address, _tics_per_ms, _timer_page->vector);
+			_event_page = (Subject_timed_event *)region.address;
+			_event_page->event_nr = Board::TIMER_EVENT_KERNEL;
+			PINF("muen-timer: page @0x%llx, frequency %llu kHz, event %u",
+			     region.address, _tics_per_ms, _event_page->event_nr);
 		}
 
 		static unsigned interrupt_id(int)
@@ -78,7 +78,7 @@ class Genode::Timer
 
 		inline void start_one_shot(uint32_t const tics, unsigned)
 		{
-			_timer_page->value = rdtsc() + tics;
+			_event_page->tsc_trigger = rdtsc() + tics;
 		}
 
 		uint32_t ms_to_tics(unsigned const ms)
@@ -89,9 +89,9 @@ class Genode::Timer
 		unsigned value(unsigned)
 		{
 			const uint64_t now = rdtsc();
-			if (_timer_page->value != TIMER_DISABLED
-			    && _timer_page->value > now) {
-				return _timer_page->value - now;
+			if (_event_page->tsc_trigger != TIMER_DISABLED
+			    && _event_page->tsc_trigger > now) {
+				return _event_page->tsc_trigger - now;
 			}
 			return 0;
 		}
