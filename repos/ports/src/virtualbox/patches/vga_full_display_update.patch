@@ -1,0 +1,41 @@
+diff --git a/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp b/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp
+index 5b3b9b3..b1339a1 100644
+--- a/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp
++++ b/src/app/virtualbox/src/VBox/Devices/Graphics/DevVGA.cpp
+@@ -5881,6 +5881,7 @@ static DECLCALLBACK(int)   vgaR3Construct(PPDMDEVINS pDevIns, int iInstance, PCF
+                                           "CustomVideoMode14\0"
+                                           "CustomVideoMode15\0"
+                                           "CustomVideoMode16\0"
++                                          "FullDisplayUpdate\0"
+                                           "MaxBiosXRes\0"
+                                           "MaxBiosYRes\0"
+ #ifdef VBOX_WITH_VMSVGA
+@@ -5915,9 +5916,15 @@ static DECLCALLBACK(int)   vgaR3Construct(PPDMDEVINS pDevIns, int iInstance, PCF
+     rc = CFGMR3QueryBoolDef(pCfg, "GCEnabled", &pThis->fGCEnabled, true);
+     AssertLogRelRCReturn(rc, rc);
+ 
++    bool fullDisplayUpdate;
++    rc = CFGMR3QueryBoolDef(pCfg, "FullDisplayUpdate", &fullDisplayUpdate, false);
++    AssertLogRelRCReturn(rc, rc);
++
+     rc = CFGMR3QueryBoolDef(pCfg, "R0Enabled", &pThis->fR0Enabled, true);
+     AssertLogRelRCReturn(rc, rc);
+-    Log(("VGA: VRamSize=%#x fGCenabled=%RTbool fR0Enabled=%RTbool\n", pThis->vram_size, pThis->fGCEnabled, pThis->fR0Enabled));
++    Log(("VGA: VRamSize=%#x fGCenabled=%RTbool fR0Enabled=%RTbool fullDisplayUpdate=%RTbool\n",
++         pThis->vram_size, pThis->fGCEnabled, pThis->fR0Enabled, fullDisplayUpdate));
++
+ 
+ #ifdef VBOX_WITH_VMSVGA
+     rc = CFGMR3QueryBoolDef(pCfg, "VMSVGAEnabled", &pThis->fVMSVGAEnabled, false);
+@@ -5967,7 +5974,7 @@ static DECLCALLBACK(int)   vgaR3Construct(PPDMDEVINS pDevIns, int iInstance, PCF
+     /* the interfaces. */
+     pThis->IBase.pfnQueryInterface      = vgaPortQueryInterface;
+ 
+-    pThis->IPort.pfnUpdateDisplay       = vgaPortUpdateDisplay;
++    pThis->IPort.pfnUpdateDisplay       = fullDisplayUpdate ? vgaPortUpdateDisplayAll : vgaPortUpdateDisplay;
+     pThis->IPort.pfnUpdateDisplayAll    = vgaPortUpdateDisplayAll;
+     pThis->IPort.pfnQueryColorDepth     = vgaPortQueryColorDepth;
+     pThis->IPort.pfnSetRefreshRate      = vgaPortSetRefreshRate;
+-- 
+2.1.4
+
