@@ -19,6 +19,8 @@
     <ExtraData>
       <ExtraDataItem name="GUI/LastGuestSizeHint" value="1024,768"/>
       <ExtraDataItem name="GUI/LastNormalWindowPosition" value="513,100,1024,790"/>
+      <ExtraDataItem name="VBoxInternal/Devices/vga/0/Config/FullDisplayUpdate" value="1"/>
+      <ExtraDataItem name="VBoxInternal/Devices/vga/0/LUN#0/Config/DisplayRefreshInterval" value="1000"/>
     </ExtraData>
     <Hardware version="2">
       <CPU count="1" hotplug="false">
