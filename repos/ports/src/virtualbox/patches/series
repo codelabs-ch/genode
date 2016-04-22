@@ -1,6 +1,7 @@
 acpi_drv.patch
 audio.patch
 dev_e1000.patch
+display_refresh_rate.patch
 eminternal.patch
 iconv.patch
 mouse.patch

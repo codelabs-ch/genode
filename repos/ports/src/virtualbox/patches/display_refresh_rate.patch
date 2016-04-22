@@ -1,0 +1,38 @@
+From 1cbec9c5b240eed3a3fcab8031a6674c74cb3c6b Mon Sep 17 00:00:00 2001
+From: Adrian-Ken Rueegsegger <ken@codelabs.ch>
+Date: Fri, 22 Apr 2016 15:06:43 +0200
+Subject: [PATCH] display_refresh_rate.patch
+
+---
+ src/app/virtualbox/src/VBox/Main/src-client/DisplayImpl.cpp | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/app/virtualbox/src/VBox/Main/src-client/DisplayImpl.cpp b/src/app/virtualbox/src/VBox/Main/src-client/DisplayImpl.cpp
+index bc3c334..6634491 100644
+--- a/src/app/virtualbox/src/VBox/Main/src-client/DisplayImpl.cpp
++++ b/src/app/virtualbox/src/VBox/Main/src-client/DisplayImpl.cpp
+@@ -5129,7 +5129,7 @@ DECLCALLBACK(int) Display::drvConstruct(PPDMDRVINS pDrvIns, PCFGMNODE pCfg, uint
+     /*
+      * Validate configuration.
+      */
+-    if (!CFGMR3AreValuesValid(pCfg, "Object\0"))
++    if (!CFGMR3AreValuesValid(pCfg, "Object\0DisplayRefreshInterval\0"))
+         return VERR_PDM_DRVINS_UNKNOWN_CFG_VALUES;
+     AssertMsgReturn(PDMDrvHlpNoAttach(pDrvIns) == VERR_PDM_NO_ATTACHED_DRIVER,
+                     ("Configuration error: Not possible to attach anything to this driver!\n"),
+@@ -5205,8 +5205,10 @@ DECLCALLBACK(int) Display::drvConstruct(PPDMDRVINS pDrvIns, PCFGMNODE pCfg, uint
+     /*
+      * Start periodic screen refreshes
+      */
+-    pThis->pUpPort->pfnSetRefreshRate(pThis->pUpPort, 20);
+-
++    uint32_t uInterval;
++    rc = CFGMR3QueryU32Def(pCfg, "DisplayRefreshInterval", &uInterval, 20);
++    AssertLogRelRCReturn(rc, rc);
++    pThis->pUpPort->pfnSetRefreshRate(pThis->pUpPort, uInterval);
+ #ifdef VBOX_WITH_CRHGSMI
+     pDisplay->setupCrHgsmiData();
+ #endif
+-- 
+2.1.4
+
