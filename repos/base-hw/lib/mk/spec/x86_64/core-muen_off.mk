@@ -13,7 +13,7 @@ SRC_CC += spec/x86/pic.cc
 SRC_CC += spec/x86/kernel/cpu_exception.cc
 SRC_CC += spec/x86/kernel/thread_exception.cc
 SRC_CC += spec/x86_64/platform_support.cc
-SRC_CC += x86/platform_services.cc
+SRC_CC += spec/x86/platform_services.cc
 
 # include less specific configuration
 include $(REP_DIR)/lib/mk/spec/x86_64/core.inc
