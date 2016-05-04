@@ -38,6 +38,8 @@ class Genode::Timer
 
 		enum { TIMER_DISABLED = ~0ULL };
 
+		Sinfo _sinfo;
+
 		uint64_t _tics_per_ms;
 
 		struct Subject_timed_event
@@ -48,6 +50,7 @@ class Genode::Timer
 
 		struct Subject_timed_event * _event_page = 0;
 		struct Subject_timed_event * _guest_event_page = 0;
+
 
 		inline uint64_t rdtsc()
 		{
@@ -60,10 +63,12 @@ class Genode::Timer
 
 	public:
 
-		Timer() : _tics_per_ms(Sinfo::get_tsc_khz())
+		Timer() :
+			_sinfo(Sinfo::PHYSICAL_BASE_ADDR),
+			_tics_per_ms(_sinfo.get_tsc_khz())
 		{
 			struct Sinfo::Memregion_info region;
-			if (!Sinfo::get_memregion_info("timed_event", &region)) {
+			if (!_sinfo.get_memregion_info("timed_event", &region)) {
 				PERR("muen-timer: Unable to retrieve timed event region");
 				throw Invalid_region();
 			}
@@ -73,7 +78,7 @@ class Genode::Timer
 			PINF("muen-timer: Page @0x%llx, frequency %llu kHz, event %u",
 			     region.address, _tics_per_ms, _event_page->event_nr);
 
-			if (Sinfo::get_memregion_info("monitor_timed_event", &region)) {
+			if (_sinfo.get_memregion_info("monitor_timed_event", &region)) {
 				PINF("muen-timer: Found guest timed event page @0x%llx"
 					 " -> enabling preemption", region.address);
 				_guest_event_page = (Subject_timed_event *)region.address;
