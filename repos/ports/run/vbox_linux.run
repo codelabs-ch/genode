@@ -1,0 +1,13 @@
+#
+# Linux in VirtualBox
+#
+
+set flavor   "linux"
+
+# Write overlay back to harddisk if set to 0
+set use_ram_fs 0
+
+set use_usb 0
+set use_ps2 [have_spec ps2]
+
+source ${genode_dir}/repos/ports/run/vbox_win.inc
