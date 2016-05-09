@@ -89,7 +89,29 @@ enum {
 
 static Genode::Vm_handler vm_handler;
 
-/* VirtualBox SUPLib interface */
+
+/**
+ * Return pointer to sinfo.
+ */
+static Genode::Sinfo * sinfo()
+{
+	using namespace Genode;
+
+	static Sinfo *ptr;
+
+	if (!ptr) {
+		try {
+			static Rom_connection sinfo_rom("subject_info_page");
+			static Sinfo sinfo(
+					(addr_t)env()->rm_session()->attach(sinfo_rom.dataspace()));
+			ptr = &sinfo;
+		} catch (...) {
+			PERR("Unable to attach Sinfo ROM");
+			Assert(false);
+		}
+	}
+	return ptr;
+}
 
 
 /**
@@ -666,23 +688,10 @@ uint64_t genode_cpu_hz()
 	static uint64_t cpu_freq = 0;
 
 	if (!cpu_freq) {
-		try {
-			using namespace Genode;
-
-			Rom_connection sinfo_rom("subject_info_page");
-			Sinfo sinfo((addr_t)env()->rm_session()->attach(sinfo_rom.dataspace()));
-
-			cpu_freq = sinfo.get_tsc_khz() * 1000;
-			if (!cpu_freq)
-				PERR("Unable to determine CPU frequency");
-
-		} catch (...) {
-			PERR("Unable to attach Sinfo ROM");
-			Genode::Lock lock;
-			lock.lock();
-		}
+		cpu_freq = sinfo()->get_tsc_khz() * 1000;
+		if (!cpu_freq)
+			PERR("Unable to determine CPU frequency");
 	}
-
 	return cpu_freq;
 }
 
