@@ -102,11 +102,22 @@ bool Platform::get_msi_params(const addr_t mmconf, addr_t &address,
 
 Native_region * Platform::_ram_regions(unsigned const i)
 {
-	static Native_region _regions[] =
-	{
-		{ 210*1024*1024, 1024*1024*1458 }
-	};
-	return i < sizeof(_regions)/sizeof(_regions[0]) ? &_regions[i] : 0;
+	if (i)
+		return 0;
+
+	static Native_region result = { .base = 0, .size = 0 };
+
+	if (!result.size) {
+		struct Sinfo::Memregion_info region;
+		if (!sinfo()->get_memregion_info("ram", &region)) {
+			PERR("Unable to retrieve base-hw ram region");
+			return 0;
+		}
+
+		result = { .base = region.address, .size = region.size };
+		PDBG("RAM base 0x%lx, size 0x%lx", result.base, result.size);
+	}
+	return &result;
 }
 
 
