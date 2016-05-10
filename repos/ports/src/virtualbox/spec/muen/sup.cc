@@ -79,6 +79,7 @@ enum {
 
 static Genode::Vm_handler vm_handler;
 
+struct Subject_state *cur_state;
 
 /**
  * Return pointer to sinfo.
@@ -101,6 +102,37 @@ static Genode::Sinfo * sinfo()
 		}
 	}
 	return ptr;
+}
+
+
+/**
+ * Setup guest subject state.
+ */
+bool setup_subject_state()
+{
+	using namespace Genode;
+
+	if (cur_state)
+		return true;
+
+	struct Sinfo::Memregion_info region;
+
+	if (!sinfo()->get_memregion_info("monitor_state", &region)) {
+		PERR("Unable to retrieve monitor state region");
+		return false;
+	}
+
+	try {
+		static Attached_io_mem_dataspace subject_ds(region.address,
+				region.size);
+		cur_state = subject_ds.local_addr<struct Subject_state>();
+		PDBG("Subject state mapped @0x%llx, size 0x%llx", region.address,
+				region.size);
+		return true;
+	} catch (...) {
+		PERR("Unable to attach subject state I/O mem dataspace");
+	}
+	return false;
 }
 
 
@@ -332,12 +364,8 @@ int SUPR3QueryVTxSupported(void) { return VINF_SUCCESS; }
 
 int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 {
-	static Genode::Attached_io_mem_dataspace subject_state(0xf00000000, 0x1000);
-
 	switch (uOperation) {
 	case SUP_VMMR0_DO_HM_RUN:
-		struct Subject_state *cur_state = subject_state.local_addr<struct Subject_state>();
-
 		VM     * pVM   = reinterpret_cast<VM *>(pVMR0);
 		PVMCPU   pVCpu = &pVM->aCpus[idCpu];
 		PCPUMCTX pCtx  = CPUMQueryGuestCtxPtr(pVCpu);
@@ -599,6 +627,9 @@ int SUPR3CallVMMR0Ex(PVMR0 pVMR0, VMCPUID idCpu, unsigned
 				GVMMCREATEVMREQ &req = reinterpret_cast<GVMMCREATEVMREQ &>(*pReqHdr);
 				AssertMsgReturn(req.cCpus == 1,
 								("VM with multiple CPUs not supported\n"),
+								VERR_INVALID_PARAMETER);
+				AssertMsgReturn(setup_subject_state(),
+								("Unable to map guest subject state\n"),
 								VERR_INVALID_PARAMETER);
 				genode_VMMR0_DO_GVMM_CREATE_VM(pReqHdr);
 				return VINF_SUCCESS;
