@@ -441,6 +441,13 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 
 		/*
 		utcb->dr7  = pCtx->dr[7];
+		- PDPTE
+		- STAR
+		- LSTAR
+		- FMASK
+		- kernelGSBASE
+		- tpr
+		- tpr_threshold
 		*/
 
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED_EXEC);
@@ -467,9 +474,11 @@ resume:
 			case 0x1c: // Control-register access
 				if (handle_cr(cur_state)) {
 					goto resume;
+				} else {
+					PDBG("Emulating CR access");
+					rc = VINF_EM_RAW_EMULATE_INSTR;
 				}
 				break;
-
 			case 0x01: // External interrupt
 			case 0x09: // Task switch
 			case 0x34: // VMX preemption timer
