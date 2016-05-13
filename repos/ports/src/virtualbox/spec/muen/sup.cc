@@ -226,7 +226,7 @@ inline bool handle_cr(struct Subject_state *cur_state)
 			res = set_cr(cur_state, cr, get_reg_val(cur_state, reg));
 			break;
 		default:
-			PDBG("Invalid control register access");
+			PDBG("Invalid control register %u access %u, reg %u", cr, acc, reg);
 			return false;
 	}
 
