@@ -75,17 +75,7 @@ enum {
 	cur_state->REG.sel   = pCtx->REG.Sel; \
 	cur_state->REG.limit = pCtx->REG.u32Limit; \
 	cur_state->REG.base  = pCtx->REG.u64Base; \
-	\
-	/* attribute fixup according to 'VMX_WRITE_SELREG' in 'HWVMXR0.h' */ \
-	if (( pCtx->REG.Sel \
-	   || !CPUMIsGuestInPagedProtectedModeEx(pCtx) \
-	   || (!pCtx->cs.Attr.n.u1DefBig && !CPUMIsGuestIn64BitCodeEx(pCtx))) \
-	  && pCtx->REG.Attr.n.u1Present == 1) \
-	{ \
-		cur_state->REG.access = pCtx->REG.Attr.u | X86_SEL_TYPE_ACCESSED; \
-	} else { \
-		cur_state->REG.access = VMCS_SEG_UNUSABLE; \
-	}
+	cur_state->REG.access = pCtx->REG.Attr.u ? : VMCS_SEG_UNUSABLE
 
 static Genode::Vm_handler vm_handler;
 
