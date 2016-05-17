@@ -460,6 +460,7 @@ resume:
 		vm_handler.run_vm();
 
 		const uint64_t reason = cur_state->Exit_reason;
+		uint32_t changed_state = 0;
 
 		switch(reason)
 		{
@@ -501,7 +502,7 @@ resume:
 				rc = VINF_EM_RAW_EMULATE_INSTR;
 		}
 
-		CPUMSetChangedFlags(pVCpu, CPUM_CHANGED_GLOBAL_TLB_FLUSH);
+		changed_state |= CPUM_CHANGED_GLOBAL_TLB_FLUSH;
 
 		VMCPU_SET_STATE(pVCpu, VMCPUSTATE_STARTED);
 
@@ -526,12 +527,18 @@ resume:
 
 		pCtx->rflags.u = cur_state->Rflags;
 
-		if (pCtx->SysEnter.cs != cur_state->Sysenter_cs)
-			CPUMSetGuestMsr(pVCpu, MSR_IA32_SYSENTER_CS, cur_state->Sysenter_cs);
-		if (pCtx->SysEnter.esp != cur_state->Sysenter_esp)
-			CPUMSetGuestMsr(pVCpu, MSR_IA32_SYSENTER_ESP, cur_state->Sysenter_esp);
-		if (pCtx->SysEnter.eip != cur_state->Sysenter_eip)
-			CPUMSetGuestMsr(pVCpu, MSR_IA32_SYSENTER_EIP, cur_state->Sysenter_eip);
+		if (pCtx->SysEnter.cs != cur_state->Sysenter_cs) {
+			pCtx->SysEnter.cs = cur_state->Sysenter_cs;
+			changed_state |= CPUM_CHANGED_SYSENTER_MSR;
+		}
+		if (pCtx->SysEnter.esp != cur_state->Sysenter_esp) {
+			pCtx->SysEnter.esp = cur_state->Sysenter_esp;
+			changed_state |= CPUM_CHANGED_SYSENTER_MSR;
+		}
+		if (pCtx->SysEnter.eip != cur_state->Sysenter_eip) {
+			pCtx->SysEnter.eip = cur_state->Sysenter_eip;
+			changed_state |= CPUM_CHANGED_SYSENTER_MSR;
+		}
 
 		if (pCtx->idtr.cbIdt != cur_state->idtr.limit ||
 		    pCtx->idtr.pIdt  != cur_state->idtr.base)
@@ -584,6 +591,8 @@ resume:
 		CPUMSetGuestEFER(pVCpu, cur_state->Ia32_efer);
 
 		VMCPU_FF_CLEAR(pVCpu, VMCPU_FF_TO_R3);
+
+		CPUMSetChangedFlags(pVCpu, changed_state | CPUM_CHANGED_HIDDEN_SEL_REGS);
 
 		if (cur_state->Intr_state != 0) {
 			Assert(cur_state->Intr_state == BLOCKING_BY_STI ||
