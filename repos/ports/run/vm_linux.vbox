@@ -6,11 +6,11 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.innotek.de/VirtualBox-settings" version="1.14-linux">
-  <Machine uuid="{37ab43a5-38d8-4491-93f5-5b0b077f5c32}" name="Linux" OSType="Debian" snapshotFolder="Snapshots" lastStateChange="2014-11-14T11:58:35Z">
+  <Machine uuid="{37ab43a5-38d8-4491-93f5-5b0b077f5c32}" name="Linux" OSType="Debian_64" snapshotFolder="Snapshots" lastStateChange="2014-11-14T11:58:35Z">
     <MediaRegistry>
       <HardDisks>
-        <HardDisk uuid="{59410cfa-90d6-47d4-8aab-0805e3b3b2a9}" location="/linux.vdi" format="VDI" type="Immutable">
-          <HardDisk uuid="{8799397c-285b-4fa7-ab29-e5a07f9dd3fa}" location="/ram/overlay_linux.vdi" format="VDI" autoReset="true"/>
+        <HardDisk uuid="{59410cfa-90d6-47d4-8aab-0805e3b3b2a9}" location="/linux_64.vdi" format="VDI" type="Immutable">
+          <HardDisk uuid="{8799397c-285b-4fa7-ab29-e5a07f9dd3fa}" location="/ram/overlay_linux_64.vdi" format="VDI" autoReset="true"/>
         </HardDisk>
       </HardDisks>
       <DVDImages/>
@@ -27,7 +27,7 @@
         <HardwareVirtExVPID enabled="true"/>
         <HardwareVirtExUX enabled="true"/>
         <PAE enabled="true"/>
-        <LongMode enabled="false"/>
+        <LongMode enabled="true"/>
         <HardwareVirtExLargePages enabled="false"/>
         <HardwareVirtForce enabled="false"/>
       </CPU>
