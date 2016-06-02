@@ -60,6 +60,7 @@ append config {
 		<provides><service name="Timer"/></provides>
 	</start>
 	<start name="ahci_drv" priority="-1">
+		<resource name="CPU" quantum="10"/>
 		<resource name="RAM" quantum="10M" />
 		<provides><service name="Block" /></provides>
 		<config>
@@ -71,6 +72,7 @@ append config {
 		</route>
 	</start>
 	<start name="part_blk" priority="-1">
+		<resource name="CPU" quantum="10"/>
 		<resource name="RAM" quantum="10M" />
 		<provides><service name="Block" /></provides>
 		<route>
@@ -81,6 +83,7 @@ append config {
 		</config>
 	</start>
 	<start name="rump_fs" priority="-1">
+		<resource name="CPU" quantum="10"/>
 		<resource name="RAM" quantum="32M" />
 		<provides><service name="File_system"/></provides>
 		<config fs="ext2fs"><policy root="/" writeable="yes"/></config>
@@ -91,6 +94,7 @@ append config {
 
 append_if [expr $use_ram_fs] config {
 	<start name="ram_fs" priority="-1">
+		<resource name="CPU" quantum="1"/>
 		<resource name="RAM" quantum="512M" />
 		<provides><service name="File_system"/></provides>
 		<config>
@@ -109,6 +113,7 @@ append_platform_drv_config
 
 append_if [expr $use_ps2] config {
 	<start name="ps2_drv" priority="-1">
+		<resource name="CPU" quantum="1"/>
 		<resource name="RAM" quantum="1M"/>
 		<provides><service name="Input"/></provides>
 		<route>
@@ -212,6 +217,7 @@ append_if [expr $use_usb] config {
 
 append_if [have_spec framebuffer] config {
 	<start name="fb_drv" priority="-1">
+		<resource name="CPU" quantum="1"/>
 		<resource name="RAM" quantum="6M"/>
 		<provides><service name="Framebuffer"/></provides>
 		<config buffered="yes" />
@@ -219,6 +225,7 @@ append_if [have_spec framebuffer] config {
 
 append_if [have_spec x86] config {
 	<start name="rtc_drv" priority="-1">
+		<resource name="CPU" quantum="1"/>
 		<resource name="RAM" quantum="1M"/>
 		<provides>
 			<service name="Rtc"/>
