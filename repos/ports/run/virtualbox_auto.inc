@@ -1,4 +1,7 @@
-assert_spec nova
+if {(![have_spec nova] && ![have_spec hw_x86_64_muen])} {
+	puts "Platform is unsupported."
+	exit 0
+}
 
 if {[have_include "power_on/qemu"]} {
 	puts "\nRun script does not support Qemu.\n"
@@ -6,7 +9,7 @@ if {[have_include "power_on/qemu"]} {
 }
 
 append build_components {
-	core init virtualbox 
+	core init virtualbox
 	server/part_blk
 	server/rump_fs
 	server/fs_rom
