@@ -129,6 +129,10 @@ struct Mem_region : Genode::List<Mem_region>::Element,
 	{
 		if (_clear)
 			Genode::memset(local_addr<char>(), 0, size);
+
+		PDBG("Virt address=0x%p, size 0x%zx, dev=%s ",
+				local_addr<char>(), size,
+               pDevIns && pDevIns->pReg ? pDevIns->pReg->szName : 0);
 	}
 };
 
