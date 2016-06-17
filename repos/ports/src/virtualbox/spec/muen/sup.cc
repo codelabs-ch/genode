@@ -520,6 +520,13 @@ int SUPR3CallVMMR0Fast(PVMR0 pVMR0, unsigned uOperation, VMCPUID idCpu)
 				rc = VINF_EM_RAW_EMULATE_INSTR;
 				break;
 			default:
+				PDBG("VM exited with exit reason %llx", reason);
+				PDBG("-> qualification %llx", cur_state->Exit_qualification);
+				PDBG("-> interrupt info %llx", cur_state->Interrupt_info);
+				PDBG("-> RIP: %lx, RSP: %lx", cur_state->Rip, cur_state->Rsp);
+				PDBG("-> RFLAGS: %lx, EFER: %lx", cur_state->Rflags, cur_state->Ia32_efer);
+				PDBG("-> CR0: %lx, CR2: %lx, CR3: %lx, CR4: %lx", cur_state->Cr0, cur_state->Regs.Cr2, cur_state->Cr3, cur_state->Cr4);
+				PDBG("-> CS: %lx, SS: %lx", cur_state->cs.sel, cur_state->ss.sel);
 				rc = VINF_EM_RAW_EMULATE_INSTR;
 		}
 
