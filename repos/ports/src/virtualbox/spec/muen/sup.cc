@@ -126,6 +126,8 @@ bool setup_subject_state()
 		static Attached_io_mem_dataspace subject_ds(region.address,
 				region.size);
 		cur_state = subject_ds.local_addr<struct Subject_state>();
+		PDBG("Subject state mapped @0x%llx, size 0x%llx", region.address,
+				region.size);
 		return true;
 	} catch (...) {
 		PERR("Unable to attach subject state I/O mem dataspace");
