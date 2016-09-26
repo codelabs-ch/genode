@@ -1,8 +1,9 @@
 ##
 # Reset the target machine via Intel AMT
 #
-# \param --power-on-amt-host       network address of target machine
-# \param --power-on-amt-password   AMT password for target machine
+# \param --power-on-amt-host        network address of target machine
+# \param --power-on-amt-password    AMT password for target machine
+# \param --power-on-amt-boot-delay  AMT machine bootup delay in seconds
 #
 
 source [genode_dir]/tool/run/amt.inc
@@ -15,6 +16,11 @@ proc power_on_amt_host { } {
 
 proc power_on_amt_password { } {
 	return [get_cmd_arg_first --power-on-amt-password ""]
+}
+
+
+proc power_on_amt_boot_delay { } {
+	return [get_cmd_arg_first --power-on-amt-boot-delay "5"]
 }
 
 
@@ -126,6 +132,6 @@ proc run_power_on { } {
 		}
 	}
 
-	sleep 5
+	sleep [power_on_amt_boot_delay]
 	return true
 }
