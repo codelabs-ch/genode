@@ -68,7 +68,7 @@ proc run_log { wait_for_re timeout_value } {
 	if {$wait_for_re == "forever"} {
 		set timeout -1
 	} else {
-		set timeout [expr $timeout_value + [log_amt_timeout]]
+		set timeout [log_amt_timeout]
 	}
 	set exit_result 1
 
