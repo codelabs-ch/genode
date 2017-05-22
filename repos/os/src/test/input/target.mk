@@ -1,3 +1,3 @@
 TARGET = test-input
 SRC_CC = test.cc
-LIBS   = base
+LIBS   = base sinfo-muen

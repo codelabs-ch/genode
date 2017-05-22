@@ -38,7 +38,7 @@
 # input events on the host PC.
 #
 
-if { [have_spec linux] || [have_spec muen] } {
+if { [have_spec linux] } {
 	puts "Run script does not support Linux and Muen."
 	exit 0
 }
@@ -117,7 +117,7 @@ append config {
 	<start name="usb_drv" caps="120">
 		<resource name="RAM" quantum="16M"/>
 		<provides><service name="Input"/></provides>
-		<config uhci="yes" ohci="yes" ehci="yes" xhci="yes"
+		<config uhci="false" ohci="false" ehci="false" xhci="yes"
 		        capslock_led="rom" numlock_led="rom" scrlock_led="rom"
 		        bios_handoff="no">
 			<hid/>
