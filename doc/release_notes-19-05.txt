@@ -792,18 +792,13 @@ gets saved and restored on every kernel entry and exit on x86 too.
 Updated Muen separation kernel
 ==============================
 
-; @codelabs
+The Muen port has been updated to the latest development version which comes
+with many improvements under the hood. Most notably this version of Muen brings
+support for Linux SMP subjects, GNAT Community 2018 toolchain support as well
+as much improved build speed which is most noticeable during autopilot runs.
 
-commit 92df79b4de635152e20a80e4787338a702de0d67
-Author: Adrian-Ken Rueegsegger <ken@codelabs.ch>
-Date:   Mon May 6 15:02:17 2019 +0200
-
-    Update Muen port
-    
-    - Drop unnecessary patch
-    - Improved build speed/parallelization
-    - Increased log channel size
-    - Fix path in base-hw/Muen documentation
+Additionally, the debug server buffer size in the Genode system policy has been
+increased to avoid potential message loss in case of rapid successive logging.
 
 
 NOVA microhypervisor
