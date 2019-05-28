@@ -614,19 +614,9 @@ port-forwarding. To express this, the new 'to_port' attritbute can be added to
 the new attribute isn't added, the rules behave as usual and forward with an
 unaltered destination port.
 
-
-NIC-bridge support for ethernet multicast
-=========================================
-
-; @ehmry
-
-commit 7448223418223da6dbfa3ec0761e87fe77435fbc
-Author: Emery Hemingway <ehmry@posteo.net>
-Date:   Thu Apr 11 21:33:57 2019 +0200
-
-    Ethernet multicast support at nic_bridge
-    
-    Fix #3282
+; NIC-bridge support for ethernet multicast
+; =========================================
+; @ehmry - just a small fix, I would not mention it
 
 
 Libraries, languages, and applications
@@ -679,22 +669,17 @@ Date:   Tue May 7 13:25:06 2019 +0200
 NIC-bus server for private LANs
 ===============================
 
-; @ehmry
-
-commit 498854c085e81175da9f6e6f3d83613bf813935f
-Author: Emery Hemingway <ehmry@posteo.net>
-Date:   Mon Apr 15 11:27:02 2019 +0200
-
-    Nic_bus server
-    
-    A minimal Nic service that switches ethernet packets between Nic
-    sessions. Packets are only switched between MAC addresses of directly
-    connected sessions, attaching a device driver and switching to
-    additional MACs on further ethernet segments is not supported. That is
-    to say that is component is neither a hub nor a switch.
-    
-    This server is intended for creating private LANs between components and
-    supports arbitrary level 3 protocols (IPv4 and IPv6).
+The 'nic_bus' server was added to the world repository as an alternative
+to the 'nic_router' and 'nic_bridge' components. The name may be slight
+misnomer, but this component acts neither as a hub, switch, or router.
+The 'nic_bus' implements unicast and multicast Ethernet packet switching
+between sessions, but drops any unicast packet not destined for a session
+attached to the bus. This is in opposition to the behavior of a typical
+Ethernet switch and is intending to create simple, software-defined
+local-area-networks for native components as well as virtual machines.
+In practice the component has been used for attaching VMs to the
+[https://yggdrasil-network.github.io/ - Yggdrasil] overlay network via
+a bus-local IPv6 prefix.
 
 
 Distributed Genode
@@ -796,39 +781,23 @@ VirtualBox version tied to the NOVA kernel is still available. Both versions
 can be used simultaneously.
 
 
-Solo5
-=====
-
-; @ehmry
-
-commit 3e848dff10c92b3425cbd38cf2d2fd7b00a8b10a
-Author: Emery Hemingway <ehmry@posteo.net>
-Date:   Wed Apr 10 13:51:32 2019 +0200
-
-    solo5: update bindings
-    
-    Update the Solo5 upstream to accomadate changes to the Block session and
-    stack protection support in the base library.
-    
-    Ref #3275
-    Ref #3283
+; Solo5
+; =====
+; @ehmry - just API updates, no new features or behavior
 
 
 Use of Nim decoupled from Genode build system
 =============================================
 
-; @ehmry
-
-commit 62a4d1de0e675ede83f86d4c83c6338eff49a5c8
-Author: Emery Hemingway <ehmry@posteo.net>
-Date:   Thu Apr 18 20:34:44 2019 +0200
-
-    Remove Nim tests
-    
-    Nim is now built independently of the Genode repository using an SDK and
-    Nimble.
-    
-    Fix #3300
+With this release all integration with Nim tooling has been removed
+from the Genode build system as a result of maturing support for
+additional languages via Genode SDKs. Building Nim components
+independently of the Genode source tree has the benefit of smaller
+upstream checkouts and faster build times, and has yielded components
+such as the [http://genodians.org/ehmry/2019-03-22-depot_9P - 9P server]
+used in some Sculpt developer workflows. An example of an independent
+build system for nim components is
+[http://genodians.org/ehmry/2019-04-27-nim_packaging - documented on the Genodians blog].
 
 
 OpenJDK improvements
