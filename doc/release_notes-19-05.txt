@@ -50,9 +50,15 @@ the kernels setup either an asynchronous notification (base-hw) or a synchronous
 IPC call (NOVA) to the VMM. In both cases the VMM will run a prior registered
 VM event handler.
 Upon return of the VM event handler, the VM can be resumed. Logically, on
-NOVA and base-hw the VM 'calls' into the VMM.
+NOVA and base-hw the VM 'calls' into the VMM. The following two figures
+contrast the different flows of control between a user-level virtual machine
+monitor and the respective kernels.
 
-; [pictures]
+[image vm_seq_foc_sel4]
+  Control flow of handling virtualization events on Fiasco.OC and seL4
+
+[image vm_seq_nova_hw]
+  Control flow of handling virtualization events on NOVA and the base-hw kernel
 
 Hiding this differences behind a common VM interface was the challenge we were
 faced, accepted and managed. Finally, at one point in December we had all 3
