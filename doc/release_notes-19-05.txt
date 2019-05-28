@@ -710,8 +710,9 @@ reliably transmit larger ROM dataspaces.
 
 As the remote_rom proved valuable for distributing functionality across
 multiple Genode devices, we also applied this concept to the LOG session in
-order to transmit LOG output from a headless Genode device to a Sculpt system
-for instance. The udp_log component provides a LOG service and sends the LOG
+order to transmit LOG output from a headless Genode device to a
+[https://genode.org/download/sculpt - Sculpt] system for instance.
+The udp_log component provides a LOG service and sends the LOG
 messages as UDP packets to another machine. The log_udp reverses this process by
 receiving these UDP packets and forwarding the messages to a LOG service. An
 example can be found in the world repository at _run/udp_log.run_ and
@@ -769,7 +770,8 @@ our [http://genodians.org/ssumpf/2019-02-27-java-19-02 - Boot2Java] article.
 
 Having these features in place, our Java efforts will continue in the direction
 of Java Swing and the support of input devices in the future, with the ultimate
-goal of seamless Java application integration into Sculpt OS.
+goal of seamless Java application integration into
+[https://genode.org/download/sculpt - Sculpt OS].
 
 
 Device drivers
