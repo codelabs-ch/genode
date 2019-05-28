@@ -15,161 +15,86 @@
 Kernel-agnostic virtual-machine monitors
 ########################################
 
-; @alex-ab
+Genode components can be assembled once for a given hardware
+platform and executed without further adjustments on all the supported kernels
+since the introduction of the
+[https://genode.org/documentation/release-notes/17.02#Genode_Application_Binary_Interface - Genode Application Binary Interface]
+in the 17.02 release. At that time, the supported virtual machine monitors, a port of Virtualbox 4 & 5, Seoul and our [https://genode.org/documentation/articles/arm_virtualization - custom VMM], stayed kernel specific.
 
-commit 5fa91a1bcc151b98cf9daf9da07f924cc987ab05
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Tue Oct 9 11:50:50 2018 +0200
+Of course, last remaining bastions tempt to be taken, so we started the venture
+last year to unify our virtualisation interface across kernels. Starting point
+was the already existing Genode VM interface of our custom VMM on ARM. We took
+it and extended the interface with caution to the x86 world. Having an eye
+on the requirements of our already supported VMMs on NOVA(x86), namely Virtualbox
+and Seoul, the VM interface got extended with missing features like multiple
+vCPU support and specific VM handlers per vCPU.
 
-    base: add x86 vm_state
-    
-    Issue #3111
+In parallel we started to investigate the other x86 microkernels with
+hardware-assisted virtualization features available, namely seL4 and Fiasco.OC.
+Over several weeks we iteratively extended the interface. On the one hand
+familiarizing us with the kernel interfaces of seL4 & Fiasco.OC, on the other hand
+considering known requirements of the NOVA microhypervisor and additionally
+keeping our custom VMM for ARM still compatible with the new VM interface.
 
-commit f927684eb84b7b28d5bb5842951f8d67bde99c06
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Wed Sep 26 13:18:07 2018 +0200
+During this time, it became apparent, that the control flow on a VM resume/pause
+and a VM event(exit) are different between seL4/Fiasco.OC and NOVA/base-hw.
+For seL4 and Fiasco.OC a VM is resumed by making a blocking syscall on the
+kernel. On a VM event, the blocking syscall will return. Logically, on both
+kernels the VMMs 'calls' into the VM.
+On base-hw and NOVA, it is the way around. Whenever a VM causes a VM event,
+the kernels setup either an asynchronous notification (base-hw) or a synchronous
+IPC call (NOVA). In both cases the VMM will run the registered VM event handler .
+Upon return of the VM event handler the VM can be resumed. Logically, on
+NOVA and base-hw the VM 'calls' into the VMM.
 
-    os: add vmm_x86 interface test
-    
-    Issue #3111
+; [pictures]
 
-commit ae31b761f4cd6814aa36686a7780ca7bbf35761d
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Fri Jan 11 13:16:01 2019 +0100
+Hiding this differences behind a common VM interface was the challenge we were
+faced, accepted and managed. Finally, at one point in December we had all 3
+x86 kernels running with a test VMM - without re-compilation. The toy VMM
+(vmm_x86.run) runs multiple vCPUs on multiple physical CPUs and tests several
+VM events/exits already.
 
-    hw: move vmm.run to vmm_arm.run
-    
-    Issue #3111
+After this major breakthrough we spent the left days before Christmas to
+adjust the Seoul VMM to the new VM interface, breaking it free of the
+kernel-specific NOVA embracing. The choice to start with Seoul stems from the
+fact that it is compared to Virtualbox much smaller and therefore easier to
+debug if things are wrong in the beginning. After one week the Seoul VMM was
+in principle kernel independent and revived on NOVA, and after some more days
+it started to hobble on seL4 and Fiasco.OC.
 
-commit 3a1bbfad280fb9fd45cd8d8e3cdfcdd866db7b07
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Wed Sep 26 14:10:34 2018 +0200
+With the new year Virtualbox was the next target, where all NOVA kernel
+specific calls have been replaced with the new Genode VM interface. Mid of
+January the work showed first results by having a prototype running simple
+VMs on NOVA again. At this point it became apparent, that this venture is not
+anymore an adventure. All the findings and technical details so far got condensed to a
+[https://fosdem.org/2019/schedule/event/microkernel_virtualization - presentation]
+given and recorded at the [https://fosdem.org/2019 - FOSDEM 2019] in Brussels
+in February in the [https://fosdem.org/2019/schedule/track/microkernels_and_component_based_os - Microkernel and Component based OS] developer room.
 
-    nova: implement vm_session interface
-    
-    Issue #3111
+Now the work started to form out of the prototype for 4 kernels
+a clean solution ready for this Genode release. Eventually, the
+kernel-agnostic Seoul VMM runnable on seL4, Fiasco.OC and NOVA entered
+Genode master. In the Genodians article
+[http://www.genodians.org/alex-ab/2019-05-09-seoul-vmm - Seoul VMM and the new
+VM interface] we conserved the current state and some performance measurements.
 
-commit b75307b070fd9a4c4ad332ada48ae05ae802b0c1
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Wed Sep 26 14:48:25 2018 +0200
+Short before this release the kernel-agnostic Virtualbox VMM version on
+Genode/NOVA got ready. The kernel-agnostic version is in principle capable to
+run Linux VMs and Windows 7/10 VMs on Genode/NOVA. Currently, this version must
+be still considered experimental and does not run on Genode/seL4 or Genode/Fiasco.OC.
 
-    foc/x86: implement vm_session interface
-    
-    Issue #3111
+Because of the experimental nature of the kernel-agnostic Virtualbox VMM version,
+we decided to keep the kernel-specific version for NOVA at the moment. On the
+one hand it gives us time to test and improve the kernel-agnostic version, on
+the other hand we can compare both versions to each other. Additionally,
+as time and interest exist, the support on Genode/seL4 and Genode/Fiasco.OC
+can be improved.
 
-commit ef130a3bf9776ad35ea7ddc466a455604ecfab4e
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Wed Sep 26 11:00:01 2018 +0200
-
-    sel4/x86: implement vm_session interface
-    
-    Issue #3111
-    
-    - enable vt-x in kernel configuration
-    
-    Kernel patches:
-    
-    - add unrestricted guest support
-    - avoid kernel boot failure when vt-x is not available
-    - avoid nullpointer in kernel when vcpu is not fully setup
-    - avoid vcpu scheduling bug which causes starvation on same/below prio level
-    - save efer register correctly from guest
-
-commit d459432c450a67347f945b378f40ed95a9b60ec0
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Fri Jan 11 15:40:49 2019 +0100
-
-    init: scale priority of vm_session
-    
-    Issue #3111
-
-commit d2229ab381174fdefc6061e013c1a4eb1f44c3cb
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Fri Jan 11 15:41:29 2019 +0100
-
-    vm_session: evaluate priority
-    
-    Issue #3111
-
-
-commit cc64c437583fbde03299cec543e27ca4b3aa6457
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Thu Apr 11 14:28:36 2019 +0200
-
-    vm_session: adjustments to work with seoul vmm
-    
-    for foc, nova, sel4
-    
-    Issue #3111
-
-commit b3f288c035795425aa89e3d30bb4c6dc02915e73
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Sun May 5 14:33:34 2019 +0200
-
-    seoul: avoid corrupted cr0 and GP on debug wrmsr
-    
-    - fix bug in instruction emulator on clts - mark cr0 as changed
-    - don't cause GP on debug control wrmsr
-    
-    Issue #3111
-
-commit 92510af9d4b3f7ff3130a1132cba729419a37287
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Sun May 5 14:32:46 2019 +0200
-
-    foc: working VM session support for AMD
-    
-    - kernel: propagate cr0 to VMM on exit in nested paging case
-    - kernel: disable forceful VM exit on task switch
-    - vm_session: adjust to kernel changes
-    
-    Issue #3111
-
-commit 70e0514a026cfddb9402e4e296a7af30e178e3c7
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Tue May 7 20:12:31 2019 +0200
-
-    seoul: handle late timeouts
-    
-    either
-    - due to poor signal performance of base platform
-    - due to being to less prioritized
-    - due to schedule overload
-    - due to using time sources of different physical CPUs
-    
-    Issue #3111
-
-commit 418734e5264c164984a529318d5cfb40c3ae83cb
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Wed May 15 13:23:36 2019 +0200
-
-    vm_session: consume spurious wakeups on nova
-    
-    Issue #3111
-
-commit 12850278a6049e6b6f27fb81992155b934fff869
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Mon May 6 10:34:47 2019 +0200
-
-    vbox5: use vm_session interface
-    
-    Issue #3111
-
-commit 5f0065755c2ab8febbb2d7fb5b370accdad0fd35
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Mon May 20 15:36:47 2019 +0200
-
-    vm_session: add fpu state for x86
-    
-    Issue #3111
-
-commit b2520ed1feabb800f5a71a3743f562321123f280
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Tue May 21 09:25:17 2019 +0200
-
-    vbox5: fpu support via new vm_session
-    
-    Issue #3111
+In the build directory you will find the 'virtualbox5' binary, which is kernel
+agnostic and the 'virtualbox5-nova' binary, which is kernel-specific to NOVA.
+Nightly tested run scenarios with the new VM interface are named
+'vbox5_vm*.run' and can be found in the 'repos/ports/run' folder.
 
 
 Broadened CPU architecture support and updated tool chain
@@ -833,56 +758,18 @@ Date:   Tue Apr 30 13:42:29 2019 +0200
 Seoul virtual-machine monitor
 =============================
 
-; @alex-ab
-
-commit 1705aab290faf2b986da4df58fd3e763e9f96dfd
-Author: Sebastian Sumpf <sebastian.sumpf@genode-labs.com>
-Date:   Mon Mar 18 14:58:05 2019 +0100
-
-    seoul: PS2 mouse wheel support
-    
-    fixes #3234
-
-commit 3b36673e0305fb7e67d36f41fcfb0a33e3ca0e97
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Mon Mar 4 10:05:11 2019 +0100
-
-    seoul: use nitpicker session
-    
-    Issue #3196
-
-commit 8840ca96a904fb20fb7664ade38ca5d6536d24a0
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Mon Nov 12 20:31:41 2018 +0100
-
-    seoul: use vm_session interface
-    
-    and remove any dependency on the NOVA kernel interface
-    
-    Issue #3111
-
+Beside the conversion of the Genode backend of Seoul to the new VM interface,
+we added mouse wheel support to the PS2 model and changed the VMM to request
+now a GUI/Nitpicker session instead of Framebufer and of Input session
+separately.
 
 VirtualBox
 ==========
 
-; @alex-ab
-
-commit 3b365422121e21c2697ba01e9a32f1ac82b5bddf
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Mon Mar 4 13:53:40 2019 +0100
-
-    vbox5: use nitpicker session
-    
-    Issue #3196
-
-commit 00953e39f446cc9cd5a217e84ee570cd107f2913
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Sat Mar 11 18:15:04 2017 +0100
-
-    vbox: allocate REM memory dense
-    
-    Fixes #2116
-
+Similar to the Seoul VMM, the Virtualbox VMM got adjusted to the new VM
+interface and now uses the GUI/Nitpicker session. The original kernel-agnostic
+Virtualbox version tied to the NOVA kernel is still available. Both versions
+can be used simultaneously.
 
 Solo5
 =====
@@ -1237,20 +1124,12 @@ Date:   Mon May 6 15:02:17 2019 +0200
 NOVA microhypervisor
 ====================
 
-; @alex-ab
-
-commit 26796c8f7ad9f245a3ddda3ebf03a9dbbf905f14
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Tue Apr 9 10:17:35 2019 +0200
-
-    nova: update kernel branch
-    
-    - sorting of initializer by Christian Prochaska - issue #3253
-    - leak of FPU register state reported by Julian Stecklina - thanks !
-    - fix page table synchronization bug - by Julian Stecklina
-    - add a second dynamic buddy if the memory requirements could not be fulfilled
-      by the first dynamic buddy
-    - disable vtlb peek if EPT/NPT is enabled
+The kernel got updated due to the update of the tool-chain update to
+GNU G++ 8.3.0. Additionally, several issues reported by Julian Stecklina
+regarding FPU and page table synchronization got addressed. The kernel memory
+allocation during boottime got more flexible to address target machines with
+fragmented physical memory. Additionally, the vTLB implementation is now
+not used on AMD machines when nested paging is available.
 
 
 seL4 microkernel
