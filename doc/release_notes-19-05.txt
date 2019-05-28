@@ -212,7 +212,7 @@ Unified build directories for ARM
 
 In version
 [https://genode.org/documentation/release-notes/17.02#Genode_Application_Binary_Interface - 17.02],
-we introduced unified build directories x86, which allow us to build and
+we introduced unified build directories for x86, which allow us to build and
 run Genode scenarios on various kernels while using only one build directory.
 This concept leverages Genode's cross-kernel-binary compatibility to make
 the switch from one kernel to another - like developing on base-linux and
@@ -263,10 +263,10 @@ how they access the hardware remain nicely hidden inside this building block.
 
 Currently, there exist _drivers_ packages for two distinct use cases:
 
-:drivers-interactive pkgs: contain all drivers needed for simple
+:drivers_interactive pkgs: contain all drivers needed for simple
   interactive scenarios, including graphical output and user input.
 
-:drivers-net pkgs: contain the drivers needed for communication over the
+:drivers_nic pkgs: contain the drivers needed for communication over the
   network.
 
 Whenever a run script fits one of these use cases, it can rely on the
@@ -301,13 +301,19 @@ either as a 'make' command line argument (or environment variable), or
 defined in the build-directory configuration (_etc/build.conf_).
 The following boards are available:
 
-:arm_v6: rpi
-:arm_v7: arndale, imx53_qsb, imx53_qsb_tz, imx6q_sabrelite, imx7d_sabre,
+:arm_v6:  rpi
+:arm_v7a: arndale, imx53_qsb, imx53_qsb_tz, imx6q_sabrelite, imx7d_sabre,
   nit6_solox, odroid_x2, odroid_xu, panda, pbxa9, usb_armory,
   wand_quad, zynq_qemu
-:x86_64: pc, linux, muen
-:x86_32: pc, linux
-:riscv:  spike
+:arm_v8a: rpi3
+:x86_64:  pc, linux, muen
+:x86_32:  pc, linux
+:riscv:   spike
+
+Please note, when running Genode on Linux, or the Muen separation kernel
+although it is run on common x86 pc hardware, we treat both runtime
+environments as separate "boards", because their device driver environment
+fundamentally differ.
 
 
 New revision of the Genode Foundations book
@@ -685,204 +691,102 @@ Date:   Thu May 2 15:18:12 2019 +0200
 New drivers-nic depot packages
 ==============================
 
-; @skalk
+As already described in section [Unified build directories for ARM],
+_drivers_nic_ packages nicely hide the driver configuration internals needed for
+a specific board to communicate over the network. Until now there was only one
+package available for x86 based PCs. Now, additional _drivers_nic_ packages
+are available for:
 
-commit 5b5e8a9bd43078e340eed85925591a093cb7ef96
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Apr 24 16:03:16 2019 +0200
-
-    depot: add recipe for drivers_nic-linux
-    
-    Ref #3180
-
-commit ff031d792c3a3d4b574b1ac76cc445d4701aa29f
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Tue Apr 23 11:10:12 2019 +0200
-
-    depot: add recipe for driver_nic-rpi
-    
-    Ref #3180
-
-commit 82693ba5b557b87acd56683477e4b619713bb38b
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Apr 17 11:33:44 2019 +0200
-
-    depot: add recipe for drivers_nic-imx53_qsb
-    
-    Ref #3180
-
-commit 8dd618d67f202f8db124255d2a4aaec8219815ed
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Apr 17 11:40:42 2019 +0200
-
-    depot: add recipe for drivers_nic-imx6q_sabrelite
-    
-    Ref #3180
-
-commit 5182224c2b683319e1e9ac756e947907fa9f335f
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Mon Apr 15 15:22:04 2019 +0200
-
-    depot: add recipe for drivers_nic-zynq
-    
-    Ref #3180
-
-commit 5d4064fed413e2efc59d8ed34fd2b81cfec4f254
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Fri Apr 12 20:07:22 2019 +0200
-
-    depot: add recipe for drivers_nic-pbxa9
-    
-    Ref #3180
-
-commit ae3a6fe27093db3bd0c828941944e215bc331385
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Tue May 7 13:39:15 2019 +0200
-
-    depot: add recipe for drivers_nic-muen pkg
+:boards: imx53_qsb imx6q_sabrelite linux muen pbxa9 rpi zynq
 
 
 Extended drivers-interactive depot packages
 ===========================================
 
-; @skalk
+Beside the formerly available _drivers_interactive_ packages for linux, pbxa9
+and pc, there are now additional ones for the following:
 
-commit a623a66019c795d6b9762989e045664ed711fb18
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Fri May 3 15:26:44 2019 +0200
-
-    depot: add recipe for drivers_interactive-imx53_qsb
-    
-    Ref #2190
-
-commit e6f83d4df23b90067de1a4fa4701ff5fbdcca23b
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Fri May 3 15:47:48 2019 +0200
-
-    depot: add recipe for drivers_interactive-rpi
-    
-    Ref #2190
-
-commit be053ed257de33f1e9355b7c7c1ada31cbc8b4f8
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Tue May 7 13:45:57 2019 +0200
-
-    depot: add recipe for drivers_interactive-muen
+:boards: imx53_qsb rpi muen
 
 
 Platforms
 #########
 
-; @skalk
+For most kernel environments the core component provides a ROM module named
+'platform_info', which comprises information provided by either kernel or
+bootloader. The information vary in between TSC clock frequency, and framebuffer
+dimensions, Mostly the information provided is of interest for special device
+driver components only.
 
-commit f42c21f16bb14da937ba6aa3c4658ef0cbebab90
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Apr 17 12:51:39 2019 +0200
-
-    platform_info: add kernel information (fix #3295)
-
+Over the time, there was an increasing need to incorporate the
+information about which kernel Genode runs on top of. Thereby special test
+components, like depot_autopilot can use the information to, e.g., skip certain
+tests on kernels known to not succeed them. Moreover, there are rare corner-cases
+where kernels behave differently like for instance interrupts are getting enumerated
+differently on certain ARM platforms. Instead of maintaining a bunch of
+differently named driver binaries dependent on one specific kernels, now the
+'platform_info' ROM module can be used to differentiate in between kernels when
+needed.
 
 Execution on bare hardware (base-hw)
 ====================================
 
-; @skalk
+This release comes with some fundamental optimizations and corrections for
+executing Genode on bare hardware when using the core component as the actual
+kernel.
 
-commit 2ecf1d887b44c8d5874cf97cd1dbe78886030a73
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Feb 20 15:26:56 2019 +0100
+In the past, we could observe some serious pecularities regarding the
+timing behaviour on the hw kernel. After a careful review we identified the
+obstacles that led to time drifts on several platforms and to quite different
+runtime execution.
 
-    hw: schedule on demand (Fix #3157)
+First and foremost, we limited the cpu-load wasted by the kernel, which
+unnecessarily made new scheduling decisions quite often. When the hw kernel was
+started as an experiment, there was less focus on performance, but more on
+simplicity. Instead of caring about state changes that make a scheduling
+decision necessary, the scheduler was asked for the next execution context
+unconditionally, whenever the kernel was entered.
+Now, the scheduler gets invoked only whenever an execution context gets blocked,
+or unblocked, or if the kernel's timer fires due to a timeout. This dramatically
+influences the cpu-load caused by the hw kernel in a positive way.
 
-commit 80fa23da5e95b83fec241958e6086e903052bea0
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Thu Feb 21 17:23:10 2019 +0100
+The timing accuracy got increased by reworking most hardware timer drivers used
+in the kernel to let the timer never stop counting. Moreover, we limit the scope
+in between reading the clock and adjusting the next timeout to a minimum. The
+whole internal time representation got widened to 64-bit.
 
-    hw: increase timing accuracy of kernel (fix #3081)
-    
-    * Introduce 64-bit tick counter
-    * Let the timer always count when possible, also if it already fired
-    * Simplify the kernel syscall API to have one current time call,
-      which returns the elapsed microseconds since boot
+In some rare use-cases, we could observe components that do I/O polling, and
+thereby actively ask for pending signals, to starve. The reason was a gap in the
+hw kernel's syscall API. Beside the ability to wait for signals, the
+base-library offers the ability to check for pending signals without blocking in
+the case of no available signals. The equivalent call in the kernel was still
+missing, and is now present and integrated in the base-library of base-hw.
 
-commit 330692350eafffd44e2338d09869980f9286e03c
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Mon Mar 11 11:42:36 2019 +0100
+ARM architecture
+----------------
 
-    hw: introduce non-blocking signal checking
-    
-    * Introduces pending_signal syscall to check for new signals for the
-      calling thread without blocking
-    * Implements pending_signal in the base-library specific for hw to use the
-      new syscall
-    
-    Fix #3217
+With this release we add the i.MX 7 Dual SABRE reference board to the rich
+hardware zoo Genode runs directly on top of. This includes the use of the
+virtualization extensions available on this platform.
 
-commit e9b3569f441523ef2aadff909ac21baa40eadc18
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Mar 13 15:43:56 2019 +0100
+Apart from the new board support, several optimizations are add specific to the
+ARM architecture.
+Several unnecessary cache maintainance operations were eliminated, which reside
+in the code base since the time when the kernel used a separate address-space
+only. Moreover, the kernel-lock, used when several execution contexts on
+different cpu-cores try to enter the kernel, does not spin anymore.
+Instead, the cpu goes into a sleep-state to save energy. As a side-effect,
+multi-core scenarios become useable when executed in Qemu.
 
-    hw: remove overall cache maintainance from core
-    
-    This functionality is only needed in bootstrap now that kernel and
-    userland share the same address-space.
-    
-    Fix #2699
+X86 architecture
+----------------
 
-commit b04a70177b0ec20371a915805a34db242fc273be
-Author: Martin Stein <martin.stein@genode-labs.com>
-Date:   Thu Nov 13 13:41:15 2014 +0100
-
-    base & arm: simplify and optimize cmpxchg
-    
-    The old inline assembly provided two output operands that were afterwards
-    combined for a return value. However, the second output operand isn't
-    necessary when using the "Acquiring a Lock" example-code of the ARM manual
-    "Barrier Litmus Tests and Cookbook". This saves two logical operations
-    per acquisition try. Additionally better documentation is now provided.
-    
-    Fixes #1292
-
-commit 3725e91603cf322fecc234278ded7ac2be85836e
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Wed Mar 13 14:58:23 2019 +0100
-
-    hw: implement power-saving kernel lock for ARM smp
-    
-    Thanks to former work of Martin Stein this commit finally incorporates a
-    non-spinning kernel lock on multi-core ARM platforms.
-    
-    Fix #1313
-
-commit baf815d09986a15d72224a418503919c36d7a986
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Fri Mar 22 14:23:07 2019 +0100
-
-    hw: add support for i.MX7 Dual SABRE board
-    
-    Fix #3251
-
-commit 1ac3c845faadfb50700a024baa625ac14d11aaab
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Thu May 16 13:42:46 2019 +0200
-
-    hw: unify board definitions of bootstrap/core
-    
-    Ref #3326
-
-commit 70ff19dc5455f45ca30c8031e8eba9343418a066
-Author: Sebastian Sumpf <sebastian.sumpf@genode-labs.com>
-Date:   Thu May 23 18:09:42 2019 +0200
-
-    hw: eager FPU switching for x86_64
-    
-    Since gcc 8.3.0 generates SSE instructions into kernel code, the
-    kernel itself may raise FPU exceptions and/or corrupt user level FPU
-    contexts thereby. Both things are not feasible, and therefore, lazy FPU
-    switching becomes a no go for base-hw because we cannot avoid FPU
-    instructions because of the entanglement of base-hw, base, and the tool
-    chain (libgcc_eh.a).
-    
-    issue #3365
+Since the newly used compiler version makes aggressive use of FPU instructions
+including the core component, the kernel itself makes use of FPU registers and
+state. Therefore, lazy FPU switching becomes a no go for base-hw. Although, we
+incorporated eager FPU switching into the ARM-specific part of the hw kernel
+already, the x86 version was still missing it. Now, the FPU context of a thread
+gets saved and restored on every kernel entry and exit on x86 too.
 
 
 Updated Muen separation kernel
@@ -916,72 +820,24 @@ longer used on AMD machines whenever nested paging is available.
 seL4 microkernel
 ================
 
-; @skalk
+With this release we extend the hardware variety to run Genode on top of the
+sel4 kernel by NXP's i.MX 7 Dual SABRE reference board. To do so, we had to
+update the sel4 tools used to craft a bootable ELF image to a state that stays
+in line with the sel4 kernel version 9.0.1 that is currently supported.
 
-commit 3d727a403fb39c72a76ac896df6e9c056a424178
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Mon Jan 21 13:55:15 2019 +0100
-
-    sel4: update tools to currently used version 9.0.x
-    
-    Until now, Genode referenced a fork of the outdated elfloader-tool
-    to enable bootstrapping of sel4 on ARM platforms. Because the
-    elfloader is inherently dependent on the used platforms newer
-    ARM versions supported by the kernel could not be loaded by the
-    outdated elfloader. This commit uses a fresh fork of the nowadays
-    used sel4_tools repository.
-    
-    Ref #3251
-
-commit 4c492a3be760928950ddf8b94ccc3e3c8b266b61
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Mon Jan 21 14:21:19 2019 +0100
-
-    imx7d_sabre: add board for sel4 and foc
-    
-    Ref #3251
-
-commit 95b9e0a0e2dde44f35048ab63789d28cf362ad2d
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Tue Apr 16 10:26:56 2019 +0200
-
-    sel4: fix configuration for imx7d sabre
-    
-    Ref #3292
-
-commit 4bcd9169c0098b10ae295e46e048a8df3df0136f
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Tue Apr 16 13:21:31 2019 +0200
-
-    sel4: add timer for imx7d_sabre
-    
-    Fix #3292
+As a side-effect of this development work, the General Purpose Timer (GPT) used
+in the i.MX series can now be used as a Timer service component.
 
 
 Fiasco.OC microkernel
 =====================
 
-; @skalk
-
-commit 356526d61058d52bc1f66a8e0aac426dc9c3c411
-Author: Alexander Boettcher <alexander.boettcher@genode-labs.com>
-Date:   Tue Apr 2 11:39:26 2019 +0200
-
-    foc: increase USER_BASE_CAP
-    
-    due to THREAD_AREA_SLOT increase by
-    
-    foc/x86: implement vm_session interface
-    
-    Add additional static assertion check to detect misconfiguration earlier.
-
-commit 71c36e79e30a0b7e4b83e5855ed720825ce31df4
-Author: Stefan Kalkowski <stefan.kalkowski@genode-labs.com>
-Date:   Fri Mar 29 11:08:06 2019 +0100
-
-    foc: add support for Raspberry Pi 3
-    
-    Ref #3260
+Like for hw and sel4, we add the i.MX 7 Dual SABRE reference board to the list of
+working hardware for Genode running on top of the Fiasco.OC microkernel.
+Moreover, on top of Fiasco.OC it is now possible to take the first steps using Genode
+on the ARM 64-bit architecture. Therefore, we add Raspberry Pi 3 as possible
+board to be used with Genode/Fiasco.OC. Currently, quite basic tests without any
+needs for peripherals are supported only.
 
 
 Tooling and build system
