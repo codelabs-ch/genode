@@ -691,18 +691,18 @@ a bus-local IPv6 prefix.
 Distributed Genode
 ==================
 
-; @valivalpas
-
-In 16.08, we initially released the remote_rom components that act as
+In
+[https://genode.org/documentation/release-notes/16.08#Network-transparent_ROM_sessions_to_a_remote_Genode_system - 16.08],
+we initially released the _remote_rom_ components that act as
 communication proxies. A communication proxy transparently relays a particular
 service to another Genode system. As the name suggests, the remote_rom relays
 ROM sessions.
 
 Originally implemented as a proof of concept using bare IP packets, broadcast
 MACs and static configuration of IP addresses, we added several improvements
-to allow a more general use. First, we adopted the size_guard idea for packet
-construction and processing from the nic_router. We further picked up the
-single-threaded implementation style that was already established in other Nic
+to allow a more general use. First, we adopted the size-guard idea for packet
+construction and processing from the NIC router. We further picked up the
+single-threaded implementation style that was already established in other NIC
 components. Thanks to Edgard Schmidt for this contribution. Second, we
 implemented ARP requests to eliminate broadcasting. Third, we moved from bare
 IP packets to UDP/IP and implemented a go-back-N ARQ strategy in order to
@@ -778,11 +778,9 @@ Device drivers
 Improved Zynq board support
 ===========================
 
-; @valivalpas
-
 The initial support of the Xilinx Zynq-7000 SoC was added to our custom kernel
 in 15.11. Since then, the support of this hardware has been incrementally
-extended. The definitions of memory maps, frequencies and RAM sizes for
+extended. The definitions of memory maps, frequencies, and RAM sizes for
 different Zynq-based boards is found in the world repository.
 
 One of the major additions in this release is the initialization of the L2
@@ -794,7 +792,7 @@ With the latest improvements of the network driver in 18.11, a zero-copy
 approach was introduced as an effort to eliminate bottlenecks in the driver's
 performance.  However, this modification also introduced a kernel dependency of
 the driver in order to flush packet-buffer memory from the cache before handing
-it over to the DMA-controller.  With this release, we moved back to using
+it over to the DMA-controller. With this release, we moved back to using
 uncached dataspaces in order to eliminate the cache flushes and the kernel
 dependency. Interestingly, we could not recognize a significant impact on the
 driver's performance, which confirms the presumption that flushing the cache
@@ -803,6 +801,8 @@ nullifies the gain from using cached dataspaces.
 In order to enable the continuous operation of the network driver, we extended
 the driver-internal error handling that is necessary to recover the network
 driver in certain situations.
+
+_Thanks to Johannes Schlatow for Genode's Zynq support!_
 
 
 Updated Intel network drivers
