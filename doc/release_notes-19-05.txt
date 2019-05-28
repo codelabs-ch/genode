@@ -448,15 +448,13 @@ plain-integer implications when calculating with time values.
 Support for chained EBR partitions
 ==================================
 
-; @cnuke
-
-commit cb2ebd0bf7e940f43d835d7517a3556f59580c0f
-Author: Josef Söntgen <josef.soentgen@genode-labs.com>
-Date:   Sun Mar 10 14:36:07 2019 +0100
-
-    part_block: fix handling of chained EBR's
-    
-    Fixes #3223.
+Having an active community around Sculpt leads to bugfixes in unexpected
+places. By now we prefer to use a GPT rather than an MBR based partiton
+table and although we test 'part_block', the component that parses the
+tables, on regular basis, the handling of chained EBR's was flawed.
+A community member who relies on such a setup encountered this flaw and
+provided a bug report which enabled us to quickly reproduce and fix the
+problem.
 
 
 IP forwarding with port redirection
@@ -506,18 +504,20 @@ incorporating the block number and the private key as salt values.
 Improved resilience of sequence tool
 ====================================
 
-; @cnuke
+We have a simple component that starts other components sequentially. It
+will exit whenever one of those components has exited with an error.
+However, this component is used by our [https://genodians.org - Genodians]
+appliance where it controls the content update mechanism. Since updating
+involves fetching content via HTTP/S depending on external events, e.g.
+the remote site is not reachable, the sequence tool might exit. In a long
+running appliance this is obviously not a useful action where no one is
+in place to restart the sequence tool. Rather than increasing the overall
+complexity of the appliance by introducing such a managment component, we
+added a _keep-going_ feature to the sequence tool that will instruct it
+to carry on even if one of the started components has failed.
 
-commit dd6bd0f880d6b0f2a3f925f5aed59d96cfef2f95
-Author: Josef Söntgen <josef.soentgen@genode-labs.com>
-Date:   Tue May 7 13:25:06 2019 +0200
-
-    sequence: add keep-going feature
-    
-    When enabling the 'keep_going' config attribute, the component will
-    carry on in case a child exited with an error. In addition, if the
-    'restart' attribute is set it will start executing the children from
-    the beginning.
+Please look at _repos/os/src/app/sequence/README_ for instructions on
+how to use the feature.
 
 
 NIC-bus server for private LANs
