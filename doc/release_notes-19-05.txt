@@ -922,18 +922,18 @@ Date:   Thu Apr 18 20:34:44 2019 +0200
 OpenJDK improvements
 ====================
 
-; @ssumpf
+Within the 19.05 release cycle we further improved Genode's OpenJDK support by
+enabling additional networking infrastructure required by the
+[https://spring.io - Spring Framework]. The improvements  especially concern
+support for SSL connections which enabled us to successfully execute an embedded
+[https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-web-servers.html - Tomcat]
+server natively on Genode x86 and ARMv7 platforms using the same JAR archive.
+This line of work continues our Java for embedded systems effort as described in
+our [http://genodians.org/ssumpf/2019-02-27-java-19-02 - Boot2Java] article.
 
-; reference Boot2Java article
-; mention Spring framework
-
-commit 6680c328ff0247b8961226d378e0f5f224817a3e
-Author: Sebastian Sumpf <sebastian.sumpf@genode-labs.com>
-Date:   Tue Mar 19 16:16:00 2019 +0100
-
-    jdk: missing network infrastructure for clients
-    
-    fixes #150
+Having these features in place, our Java efforts will continue in the direction
+of Java Swing and the support of input devices in the future, with the ultimate
+goal of seamless Java application integration into Sculpt OS.
 
 
 Device drivers
