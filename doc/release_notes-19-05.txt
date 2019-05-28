@@ -684,27 +684,31 @@ Date:   Thu Apr 11 21:33:57 2019 +0200
 Libraries, languages, and applications
 ######################################
 
-SPARK-based cryptography library
-================================
+Ada/SPARK runtime and SPARK-based cryptography
+==============================================
 
-; @componolit (?)
+The SPARK runtime has been updated to GCC 8.3. SPARK components do not
+require 'Genode::Env' or a terminal session anymore. Debug message can still be
+printed using 'GNAT.IO', which uses 'Genode::log' and 'Genode::error'
+internally now.
 
-commit 4c8d787918d90f633357fba6d531b31f405799d7
-Author: Alexander Senier <senier@componolit.com>
-Date:   Mon Feb 25 11:03:48 2019 +0100
+Threading support, which was never fully implemented, has been removed
+to further simplify the runtime. This simplification allowed us to prove
+absence of runtime errors for the secondary stack allocator and other parts of
+the runtime.
 
-    Port libsparkcrypto
+[https://github.com/Componolit/libsparkcrypto.git - Libsparkcrypto] is a
+library of common cryptographic algorithms implemented in SPARK. It is
+free-standing and has a very small footprint. The port of libsparkcrypto
+for Genode has been added to the libports repository.
+Thanks to Alexander Senier and Johannes Kliemann of
+[https://componolit.com - Componolit] for maintaining the Ada/SPARK runtime
+and libsparkcrypto.
 
-commit a2743dcaeba024d201a0b85a81d89a068f941639
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Thu Dec 20 16:49:14 2018 +0100
-
-    Library for the AES-CBC en/decryption of 4K blocks
-    
-    The 'aes_cbc_4k' library is simple wrapper around libsparkcrypto to
-    serve as a backend for storage encryption. It operates on data chunks of
-    4 KiB and uses AES-CBC while incorporating the block number and the
-    private key as salt values.
+To accommodate the use case of block encryption, we added the small wrapper
+library 'aes_cbc_4k' around libsparkcrypto that provides a simple C++
+interface for the en/decryption of 4 KiB data blocks. It uses AES-CBC while
+incorporating the block number and the private key as salt values.
 
 
 Improved resilience of sequence tool
