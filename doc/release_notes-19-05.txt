@@ -15,36 +15,41 @@
 Kernel-agnostic virtual-machine monitors
 ########################################
 
-Genode components can be assembled once for a given hardware
-platform and executed without further adjustments on all the supported kernels
-since the introduction of the
+Since the introduction of the
 [https://genode.org/documentation/release-notes/17.02#Genode_Application_Binary_Interface - Genode Application Binary Interface]
-in the 17.02 release. At that time, the supported virtual machine monitors, a port of Virtualbox 4 & 5, Seoul and our [https://genode.org/documentation/articles/arm_virtualization - custom VMM], stayed kernel specific.
+in the 17.02 release,
+Genode components can be assembled once for a given hardware platform and
+executed without further adjustments on all the supported kernels.
+However, at that time, the supported virtual machine monitors - a port of
+VirtualBox 4 & 5, Seoul and our
+[https://genode.org/documentation/articles/arm_virtualization - custom VMM] -
+stayed kernel specific.
 
-Of course, last remaining bastions tempt to be taken, so we started the venture
-last year to unify our virtualisation interface across kernels. Starting point
+Of course, last remaining bastions tempt to be taken! So last year, we started
+the venture to unify our virtualization interface across kernels. Starting point
 was the already existing Genode VM interface of our custom VMM on ARM. We took
 it and extended the interface with caution to the x86 world. Having an eye
-on the requirements of our already supported VMMs on NOVA(x86), namely Virtualbox
-and Seoul, the VM interface got extended with missing features like multiple
-vCPU support and specific VM handlers per vCPU.
+on the requirements of our already supported VMMs on NOVA(x86), namely
+VirtualBox and Seoul, the VM interface got extended with missing features like
+multiple vCPU support and specific VM handlers per vCPU.
 
-In parallel we started to investigate the other x86 microkernels with
+In parallel, we started to investigate the other x86 microkernels with regard to
 hardware-assisted virtualization features available, namely seL4 and Fiasco.OC.
-Over several weeks we iteratively extended the interface. On the one hand
+Over several weeks, we iteratively extended the interface. On the one hand
 familiarizing us with the kernel interfaces of seL4 & Fiasco.OC, on the other hand
 considering known requirements of the NOVA microhypervisor and additionally
 keeping our custom VMM for ARM still compatible with the new VM interface.
 
-During this time, it became apparent, that the control flow on a VM resume/pause
+During this time, it became apparent that the control flow on a VM resume/pause
 and a VM event(exit) are different between seL4/Fiasco.OC and NOVA/base-hw.
 For seL4 and Fiasco.OC a VM is resumed by making a blocking syscall on the
 kernel. On a VM event, the blocking syscall will return. Logically, on both
 kernels the VMMs 'calls' into the VM.
 On base-hw and NOVA, it is the way around. Whenever a VM causes a VM event,
 the kernels setup either an asynchronous notification (base-hw) or a synchronous
-IPC call (NOVA). In both cases the VMM will run the registered VM event handler .
-Upon return of the VM event handler the VM can be resumed. Logically, on
+IPC call (NOVA) to the VMM. In both cases the VMM will run a prior registered
+VM event handler.
+Upon return of the VM event handler, the VM can be resumed. Logically, on
 NOVA and base-hw the VM 'calls' into the VMM.
 
 ; [pictures]
@@ -55,44 +60,49 @@ x86 kernels running with a test VMM - without re-compilation. The toy VMM
 (vmm_x86.run) runs multiple vCPUs on multiple physical CPUs and tests several
 VM events/exits already.
 
-After this major breakthrough we spent the left days before Christmas to
+After this major breakthrough, we spent the left days before Christmas to
 adjust the Seoul VMM to the new VM interface, breaking it free of the
 kernel-specific NOVA embracing. The choice to start with Seoul stems from the
-fact that it is compared to Virtualbox much smaller and therefore easier to
-debug if things are wrong in the beginning. After one week the Seoul VMM was
-in principle kernel independent and revived on NOVA, and after some more days
-it started to hobble on seL4 and Fiasco.OC.
+fact that it is - compared to VirtualBox - much smaller and therefore easier to
+debug if things are wrong in the beginning. After one week, the Seoul VMM
+became in principle kernel independent and revived on NOVA, and after some
+more days, it started to hobble on seL4 and Fiasco.OC.
 
-With the new year Virtualbox was the next target, where all NOVA kernel
+With the New Year, VirtualBox was the next target where all NOVA kernel
 specific calls have been replaced with the new Genode VM interface. Mid of
-January the work showed first results by having a prototype running simple
-VMs on NOVA again. At this point it became apparent, that this venture is not
+January, the work showed first results by having a prototype running simple
+VMs on NOVA again. At this point, it became apparent that this venture is not
 anymore an adventure. All the findings and technical details so far got condensed to a
 [https://fosdem.org/2019/schedule/event/microkernel_virtualization - presentation]
 given and recorded at the [https://fosdem.org/2019 - FOSDEM 2019] in Brussels
-in February in the [https://fosdem.org/2019/schedule/track/microkernels_and_component_based_os - Microkernel and Component based OS] developer room.
+in February in the
+[https://fosdem.org/2019/schedule/track/microkernels_and_component_based_os - Microkernel and Component based OS]
+developer room.
 
-Now the work started to form out of the prototype for 4 kernels
-a clean solution ready for this Genode release. Eventually, the
-kernel-agnostic Seoul VMM runnable on seL4, Fiasco.OC and NOVA entered
+At this point, we started transforming our prototype for the 4 kernels
+into a clean solution to be featured in Genode 19.05. Eventually, the
+kernel-agnostic Seoul VMM runnable on seL4, Fiasco.OC, and NOVA entered
 Genode master. In the Genodians article
 [http://www.genodians.org/alex-ab/2019-05-09-seoul-vmm - Seoul VMM and the new
-VM interface] we conserved the current state and some performance measurements.
+VM interface],
+we conserved the current state and a few performance measurements.
 
-Short before this release the kernel-agnostic Virtualbox VMM version on
+Short before this release, the kernel-agnostic VirtualBox VMM version on
 Genode/NOVA got ready. The kernel-agnostic version is in principle capable to
 run Linux VMs and Windows 7/10 VMs on Genode/NOVA. Currently, this version must
-be still considered experimental and does not run on Genode/seL4 or Genode/Fiasco.OC.
+still be considered as experimental and does not run on Genode/seL4 or Genode/Fiasco.OC.
 
-Because of the experimental nature of the kernel-agnostic Virtualbox VMM version,
-we decided to keep the kernel-specific version for NOVA at the moment. On the
-one hand it gives us time to test and improve the kernel-agnostic version, on
-the other hand we can compare both versions to each other. Additionally,
-as time and interest exist, the support on Genode/seL4 and Genode/Fiasco.OC
-can be improved.
+Because of the experimental nature of the kernel-agnostic VirtualBox VMM version,
+we decided to keep the kernel-specific version for NOVA at the moment. This
+gives us time to test and improve the kernel-agnostic version. It also allows
+us to compare both versions to each other.
+If time and interest permits, we will consider bringing the virtualization
+support on Genode/seL4 and Genode/Fiasco.OC on par with Genode/NOVA.
 
-In the build directory you will find the 'virtualbox5' binary, which is kernel
-agnostic and the 'virtualbox5-nova' binary, which is kernel-specific to NOVA.
+When building VirtualBox with Genode 19.05,
+you will find both the 'virtualbox5-nova' and the new 'virtualbox5' binaries
+in the build directory. The former relies on NOVA's kernel interface whereas
+the latter uses Genode's kernel-agnostic VM interface.
 Nightly tested run scenarios with the new VM interface are named
 'vbox5_vm*.run' and can be found in the 'repos/ports/run' folder.
 
@@ -771,18 +781,20 @@ Date:   Tue Apr 30 13:42:29 2019 +0200
 Seoul virtual-machine monitor
 =============================
 
-Beside the conversion of the Genode backend of Seoul to the new VM interface,
-we added mouse wheel support to the PS2 model and changed the VMM to request
-now a GUI/Nitpicker session instead of Framebufer and of Input session
+Besides the conversion of the Genode backend of Seoul to the new VM interface,
+we added mouse-wheel support to the PS/2 model and changed the VMM to request
+a GUI/nitpicker session instead of a framebufer and an input session
 separately.
+
 
 VirtualBox
 ==========
 
-Similar to the Seoul VMM, the Virtualbox VMM got adjusted to the new VM
-interface and now uses the GUI/Nitpicker session. The original kernel-agnostic
-Virtualbox version tied to the NOVA kernel is still available. Both versions
+Similar to the Seoul VMM, the VirtualBox VMM got adjusted to the new VM
+interface and now uses the GUI/nitpicker session. The original kernel-agnostic
+VirtualBox version tied to the NOVA kernel is still available. Both versions
 can be used simultaneously.
+
 
 Solo5
 =====
@@ -1137,12 +1149,12 @@ Date:   Mon May 6 15:02:17 2019 +0200
 NOVA microhypervisor
 ====================
 
-The kernel got updated due to the update of the tool-chain update to
+The kernel got updated due to the tool-chain update to
 GNU G++ 8.3.0. Additionally, several issues reported by Julian Stecklina
-regarding FPU and page table synchronization got addressed. The kernel memory
-allocation during boottime got more flexible to address target machines with
-fragmented physical memory. Additionally, the vTLB implementation is now
-not used on AMD machines when nested paging is available.
+regarding FPU and page-table synchronization got addressed. The kernel memory
+allocation at boot time got more flexible to address target machines with
+fragmented physical memory. Additionally, the vTLB implementation is no
+longer used on AMD machines whenever nested paging is available.
 
 
 seL4 microkernel
