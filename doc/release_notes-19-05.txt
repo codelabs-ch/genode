@@ -322,6 +322,19 @@ rather a refinement than a revision. The noteworthy additions and changes are:
 To examine the changes in detail, please refer to the book's
 [https://github.com/nfeske/genode-manual/commits/master - revision history].
 
+New online version of the book
+------------------------------
+
+We are happy to report that the Genode Foundations book is now available
+as an online version in addition to the regular PDF version.
+
+:Browse the Genode Foundations book online:
+
+  [http://genode.org/documentation/genode-foundations/18-05/index.html]
+
+Thanks to Edgard Schmidt for creating the tooling for the HTML version of
+the book!
+
 
 Base framework and OS-level infrastructure
 ##########################################
