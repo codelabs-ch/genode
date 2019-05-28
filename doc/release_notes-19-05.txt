@@ -358,217 +358,65 @@ Base framework and OS-level infrastructure
 Modernized block-storage interfaces
 ===================================
 
-; @nfeske
+With the current release, we revisited Genode's interfaces for accessing
+block devices to ease the implementation of asynchronous I/O, to accommodate
+zero-copy block drivers, and to support trim and sync requests.
 
-commit 2208220c12347ca68fe52498077e6a95a9945096
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Wed Apr 3 16:05:10 2019 +0200
 
-    block session: remove Block::Session::Operations
-    
-    This patch modernizes the 'Block::Session::info' interface. Instead of
-    using out parameters, the 'init' RPC function returns a compound 'Info'
-    object now. The rather complicated 'Operations' struct is replaced by
-    a 'writeable' attribute in the 'Info' object.
-    
-    Fixes #3275
+Revised RPC interface
+---------------------
 
-commit bbe3ee8dc5852c7f95f1b7d1e84654199d778a51
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Thu Apr 4 18:25:54 2019 +0200
+The 'Block::Session' RPC interface remained untouched for a long time.
+We have now rectified long-standing deficiencies.
 
-    block_session: server-defined payload alignment
-    
-    This patch replaces the formerly fixed 2 KiB data alignment within the
-    packet-stream buffer by a server-defined alignment. This has two
-    benefits.
-    
-    First, when using block servers that provide small block sizes like 512
-    bytes, we avoid fragmenting the packet-stream buffer, which occurs when
-    aligning 512-byte requests at 2 KiB boundaries. This reduces meta data
-    costs for the packet-stream allocator and also allows fitting more
-    requests into the buffer.
-    
-    Second, block drivers with alignment constraints dictated by the
-    hardware can now pass those constraints to the client, thereby easing
-    the use of zero-copy DMA directly into the packet stream.
-    
-    The alignment is determined by the Block::Session_client at construction
-    time and applied by the Block::Session_client::alloc_packet method.
-    Block-session clients should always use this method, not the 'alloc_packet'
-    method of the packet stream (tx source) directly. The latter merely
-    applies a default alignment of 2 KiB.
-    
-    At the server side, the alignment is automatically checked by
-    block/component.h (old API) and block/request_stream.h (new API).
-    
-    Issue #3274
+First, *sync requests* used to be handled as synchronous RPCs. This is bad
+for components like part_block that multiplex one block device for
+multiple clients. One long-taking sync request of one client could stall
+the I/O for all other clients. The new version handles sync requests as
+asynchronous block-request packets instead.
 
-commit 34fd5f626a5e57ff87295d7b689497d062d22206
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Fri Apr 5 09:12:27 2019 +0200
+Second, the new version allows a server to dictate the *alignment* of
+block-request payload. This way, a driver becomes able use the shared
+block-payload buffer as DMA buffers while respecting the device's buffer
+alignment constraints.
 
-    test/block_request_stream: private Request_stream
-    
-    Avoid public inheritance to make the code simpler to understand.
-    
-    Issue #3279
+Third, we added support for *trim* as an asynchronous block operation.
 
-commit 51f51c18afcd698ad866225ca97085ccc75c1940
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Fri Apr 5 09:16:28 2019 +0200
+Fourth, each block operation can now be accompanied with a client-defined
+request tag independent from the other parameters of the operation.
+The tag allows a block-session client to uniquely correlate
+acknowledgements with outstanding requests. Until now, this was possible
+for read and write operations by taking the value of the request's
+packet-stream offset. However, sync and trim requests do not carry any
+packet-stream payload and thereby lack meaningful offset values. By
+introducing the notion of a tag, we can support multiple outstanding
+requests of any type and don't need to overload the meaning of the
+offset value.
 
-    block/request_stream: rename wakeup_client
-    
-    This patch renames 'wakeup_client' to 'wakeup_client_if_needed' to
-    clarify that the method triggers signals only when needed, not on every
-    call.
-    
-    The name 'wakeup_client' is prone to misguide users to call the function
-    conditionally as an optimization, thereby complicating the code, but to
-    no effect.
-    
-    Fixes #3279
 
-commit a39474a245c545ac0fb858a6daa5773d1d13a186
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Tue Apr 9 16:24:12 2019 +0200
+New client-side API
+-------------------
 
-    block-request stream: split Operation from Request
-    
-    This patch splits the 'Request' definition into smaller types that are
-    suitable for the client-side API too.
-    
-    The new 'Operation' type comprises the block operation's type (opcode)
-    and the operation's arguments (block number, block count).
-    The former 'Request::operation_defined' is now 'Operation::valid'.
-    The 'Request' aggregates an 'Operation', which changes its object
-    layout.
-    
-    Note that this commit relaxes the bit-precise definition of 'Request' to
-    facilitate the use of 'unsigned long' where appropriate, in particular
-    for the request tag (which should correspond to an 'Id_space::Id'). The
-    originally bit-precise definition was pursued to allow the sharing of
-    the 'Request' type between SPARK and C++ code. However, it turns out
-    that defining a native type in each language and a (set of) converting
-    constructors is a more natural approach.
-    
-    Issue #3283
+We have now equipped the 'Block::Connection' with a framework API for the
+implementation of robust block-session clients that perform block I/O in
+an asynchronous fashion.
 
-commit e058adc4fec329cc733afc78de9f27b6f38253e7
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Tue Apr 9 13:58:49 2019 +0200
+An application-defined 'JOB' type, inherited from 'Connection::Job',
+encapsulates the application's context information associated with a
+block operation.
 
-    block_session: add client-defined request tag
-    
-    The new request tag allows a block-session client to uniquely correlate
-    acknowledgements with outstanding requests. Until now, this was possible
-    for read and write operations by taking the value of the request's
-    packet-stream offset. However, SYNC and TRIM requests do not carry any
-    packet-stream payload and thereby lack meaningful offset values. By
-    introducing the notion of a 'tag', we can support multiple outstanding
-    requests of any type and don't need to overload the meaning of the
-    'offset' value.
-    
-    Issue #3274
+The life cycle of the jobs is implemented by the 'Connection' and driven
+by the application's invokation of 'Connection::update_jobs'. The
+'update_jobs' mechanism takes three hook functions as arguments, which
+implement the applications-defined policy for producing and consuming
+data, and for the completion of jobs.
 
-commit 593e97112185e3804d0a59241e77bf16c3632b72
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Tue Apr 9 10:52:01 2019 +0200
-
-    block_session: SYNC and TRIM as async operations
-    
-    This patch removes the blocking Block::Session::sync RPC function and
-    adds the asynchronous operations SYNC and TRIM to the block session's
-    packet-stream interface.
-    
-    Even though the patch adjusts all block components to the interface
-    change, the components keep the former blocking handling of sync
-    internally for now because of the design of the 'Block::Driver'
-    interface. This old interface is not worth changing. We should instead
-    migrate the block servers step by step to the new
-    'Block::Request_stream' API.
-    
-    Fixes #3274
-
-commit c433f870002738e1a01604d82eb7a182c46f119e
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Wed Apr 10 22:16:31 2019 +0200
-
-    os: batching of packet-stream source operations
-    
-    This patch adds support for manually triggering the wakeup of the packet
-    sink by the source. This way, a packet source becomes able to marshal
-    batches of submissions or unmarshal batches of acknowledgements before
-    yielding the control over to the sink.
-    
-    Issue #3283
-
-commit 6c0dd9fe3bfb5b8f01c7a43efa9cafe7819fc716
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Tue Apr 9 17:43:30 2019 +0200
-
-    block_session: use types from block/request.h
-    
-    Issue #3283
-
-commit e5f27b44b54c6311d940d9906880d828ba9281ea
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Wed Apr 10 20:11:18 2019 +0200
-
-    block_session: turn 'Connection' into template
-    
-    As a preparatory step for introducing the new block-client API, we have
-    to turn the 'Block::Connection' into a class template. The template
-    argument will be used to tie an application-defined job type to the
-    block connection.
-    
-    Issue #3283
-
-commit 976f67eee63b4925f001608151343f14a2b83f00
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Thu Apr 11 21:37:53 2019 +0200
-
-    os: make 'Block::Operation' printable
-    
-    Issue #3283
-
-commit 784206c85ccfb89915a9cd0fa60c78c3a6aa6c12
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Wed Apr 10 15:07:16 2019 +0200
-
-    block_session: new client-side API
-    
-    This patch equips the 'Block::Connection' with a framework API for the
-    implementation of robust block-session clients that perform block I/O in
-    an asynchronous fashion.
-    
-    An application-defined 'JOB' type, inherited from 'Connection::Job',
-    encapsulates the application's context information associated with a
-    block operation.
-    
-    The lifecycle of the jobs is implemented by the 'Connection' and driven
-    by the application's invokation of 'Connection::update_jobs'. The
-    'update_jobs' mechanism takes three hook functions as arguments, which
-    implement the applications-defined policy for producing and consuming
-    data, and for the completion of jobs.
-    
-    Issue #3283
-
-commit 17fda73ca1fd617a350991aad29b0bc8bf4caa34
-Author: Norman Feske <norman.feske@genode-labs.com>
-Date:   Thu Apr 11 21:36:28 2019 +0200
-
-    block_tester: update to new block-client API
-    
-    - Added 'io_buffer' attribute, default is 4M
-    - Added 'batch' attribute, specifying the number of jobs used
-      in parallel, default is 1 (sequential)
-    - Removed 'synchronous' attribute (use batch of 1 instead)
-    - Added 'copy' attribute (default "yes")
-    - Print number of signals ("triggered")
-    
-    Issue #3283
+We plan to gradually move the existing block clients to the new API to
+benefit from the latency-hiding effects of asynchronous I/O.
+The first updated client is the _block_tester_ component located
+at _os/src/app/block_tester/_, which received a number of new features
+like the choice of the batch size. Please refer to the accompanied README for
+a detailed description of the block-tester.
 
 
 Unified types for time values
